@@ -395,5 +395,14 @@ function add_inline_css_to_post_editor_wph() {
   * It also incorrectly assumed the admin is always user ID 1,
   * which is often not true and is a bad practice.
   */
- // register_activation_hook(__FILE__, 'client_data_send_ai_chatbot'); // This line has been removed.
+ 
+ 
+ // Close any remaining wrappers introduced earlier
+}
+}
+}
+}
+}
+
+// register_activation_hook(__FILE__, 'client_data_send_ai_chatbot'); // This line has been removed.
 
