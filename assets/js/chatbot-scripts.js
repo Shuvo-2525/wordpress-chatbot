@@ -10,37 +10,45 @@ let leadCaptured = false; // Flag: true if user info has been submitted
 let isFetching = false; // Flag: true if an API call is in progress
 const lead_id = generateLeadId(); // Generate a unique ID for this session
 
-// --- DOM Element References ---
-// Use descriptive names and query selectors scoped to the chatbot container
-const chatbotContainer = document.querySelector('.lwh-open-cbot');
+// --- DOM Element References (Declare in outer scope) ---
+let chatbotContainer, chatbotImage, customChatbotDiv, chatWindow, submitButton, messageInput;
+let leadCaptureFieldsDiv, nameInput, emailInput, phoneInput, formOuter, buttonDiv, msgInputGroup;
+let chatMessagesContainer, buttonStartDiv, inputWithMessageDiv, chatHeaderNameDiv, chatHeaderBackDiv;
+let leadHeaderDiv, loadingIndicator, popupElement, headerTitleElement, chatStatusElement;
+let messageForm, startButton;
+
+// Find the main container first
+chatbotContainer = document.querySelector('.lwh-open-cbot');
+
 if (!chatbotContainer) {
-    console.error("Chatbot container (.lwh-open-cbot) not found.");
+    console.error("Chatbot container (.lwh-open-cbot) not found. Chatbot script will not run.");
 } else {
-    // Only query within the container if it exists
-    const chatbotImage = chatbotContainer.querySelector('.custom-chatbot__image');
-    const customChatbotDiv = chatbotContainer.querySelector('.custom-chatbot');
-    const chatWindow = chatbotContainer.querySelector('.chat');
-    const submitButton = chatbotContainer.querySelector('#submit-btn');
-    const messageInput = chatbotContainer.querySelector('#message');
-    const leadCaptureFieldsDiv = chatbotContainer.querySelector('#leadCaptureFields');
-    const nameInput = chatbotContainer.querySelector('#name');
-    const emailInput = chatbotContainer.querySelector('#email');
-    const phoneInput = chatbotContainer.querySelector('#phone');
-    const formOuter = chatbotContainer.querySelector('#form-outer');
-    const buttonDiv = chatbotContainer.querySelector('#button-div'); // Submit button container
-    const msgInputGroup = chatbotContainer.querySelector('.form-group.msg-input');
-    const chatMessagesContainer = chatbotContainer.querySelector('.chat__messages');
-    const buttonStartDiv = chatbotContainer.querySelector('#button-start-div'); // Start convo button container
-    const inputWithMessageDiv = chatbotContainer.querySelector('#input-with-message');
-    const chatHeaderNameDiv = chatbotContainer.querySelector('#chat_header_name');
-    const chatHeaderBackDiv = chatbotContainer.querySelector('#chat_header_back');
-    const leadHeaderDiv = chatbotContainer.querySelector('.lead-header-container');
-    const loadingIndicator = chatbotContainer.querySelector('.loading');
-    const popupElement = chatbotContainer.querySelector('.popup');
-    const headerTitleElement = chatbotContainer.querySelector('#wph_chatbot_header_title_display');
-    const chatStatusElement = chatbotContainer.querySelector('.chat__status');
-    const messageForm = chatbotContainer.querySelector('#messageForm');
-    const startButton = chatbotContainer.querySelector('#start-btn'); // New conversation button
+    // --- Assign DOM Elements (inside the block) ---
+    // Assign values to the variables declared outside
+    chatbotImage = chatbotContainer.querySelector('.custom-chatbot__image');
+    customChatbotDiv = chatbotContainer.querySelector('.custom-chatbot');
+    chatWindow = chatbotContainer.querySelector('.chat');
+    submitButton = chatbotContainer.querySelector('#submit-btn');
+    messageInput = chatbotContainer.querySelector('#message');
+    leadCaptureFieldsDiv = chatbotContainer.querySelector('#leadCaptureFields');
+    nameInput = chatbotContainer.querySelector('#name');
+    emailInput = chatbotContainer.querySelector('#email');
+    phoneInput = chatbotContainer.querySelector('#phone');
+    formOuter = chatbotContainer.querySelector('#form-outer');
+    buttonDiv = chatbotContainer.querySelector('#button-div'); // Submit button container
+    msgInputGroup = chatbotContainer.querySelector('.form-group.msg-input');
+    chatMessagesContainer = chatbotContainer.querySelector('.chat__messages');
+    buttonStartDiv = chatbotContainer.querySelector('#button-start-div'); // Start convo button container
+    inputWithMessageDiv = chatbotContainer.querySelector('#input-with-message');
+    chatHeaderNameDiv = chatbotContainer.querySelector('#chat_header_name');
+    chatHeaderBackDiv = chatbotContainer.querySelector('#chat_header_back');
+    leadHeaderDiv = chatbotContainer.querySelector('.lead-header-container');
+    loadingIndicator = chatbotContainer.querySelector('.loading');
+    popupElement = chatbotContainer.querySelector('.popup');
+    headerTitleElement = chatbotContainer.querySelector('#wph_chatbot_header_title_display');
+    chatStatusElement = chatbotContainer.querySelector('.chat__status');
+    messageForm = chatbotContainer.querySelector('#messageForm');
+    startButton = chatbotContainer.querySelector('#start-btn'); // New conversation button
 
     // --- Initialization ---
     // Add event listeners only if elements exist
@@ -61,7 +69,7 @@ if (!chatbotContainer) {
      }
 
     // Initialize UI based on lead capture status (check localStorage)
-    initializeUIState();
+    initializeUIState(); // Now safe to call as variables are in scope
     lwhOpenCbotfetchBotConfiguration(); // Fetch config on load
 
     // Autofill lead data if present in localStorage
@@ -73,16 +81,21 @@ if (!chatbotContainer) {
         // Initial check in case of autofill
         handleFloatingLabel.call(input);
     });
+
 } // End of main execution block
 
 
-// --- Core Functions ---
+// --- Core Functions (Remain outside the 'else' block, but can now access the variables) ---
 
 /**
  * Toggles the visibility of the chatbot window and launcher icon.
  */
 function lwhOpenCbotToggleChat() {
-    if (!chatbotImage || !customChatbotDiv || !chatWindow) return;
+    // Check if essential elements were found
+    if (!chatbotImage || !customChatbotDiv || !chatWindow) {
+        console.error("Cannot toggle chat: Essential elements missing.");
+        return;
+    }
 
     const isChatbotVisible = customChatbotDiv.style.display !== 'none';
 
@@ -110,6 +123,7 @@ function initializeUIState() {
      const savedEmail = localStorage.getItem('lead_email');
      const savedPhone = localStorage.getItem('lead_phone');
 
+     // Check if elements exist before manipulating them
      if (savedName && savedEmail && savedPhone) {
          leadCaptured = true;
          // Hide lead fields, show message input and submit button
@@ -150,6 +164,7 @@ function initializeUIState() {
  * Shows the lead capture form fields.
  */
 function displayLeadForm() {
+    // Check if elements exist
     if (!inputWithMessageDiv || !buttonDiv || !buttonStartDiv || !chatMessagesContainer || !chatHeaderNameDiv || !chatHeaderBackDiv || !chatShowDiv || !leadHeaderDiv) return;
 
     inputWithMessageDiv.style.display = 'flex';
@@ -167,6 +182,7 @@ function displayLeadForm() {
  * Hides the lead capture form and returns to the initial state or chat view.
  */
 function closeLeadForm() {
+    // Check if elements exist
     if (!inputWithMessageDiv || !buttonDiv || !buttonStartDiv || !chatMessagesContainer || !chatHeaderNameDiv || !chatHeaderBackDiv || !chatShowDiv || !leadHeaderDiv) return;
 
     inputWithMessageDiv.style.display = 'none'; // Hide form fields + message input
@@ -322,10 +338,13 @@ async function lwhOpenCbotonFormSubmit(event, userMessage) {
  * Updates the UI after successful lead capture.
  */
 function switchToChatMode() {
+    // Check if elements exist
     if (!leadCaptureFieldsDiv || !formOuter || !buttonDiv || !msgInputGroup || !chatShowDiv || !chatHeaderNameDiv || !chatHeaderBackDiv || !leadHeaderDiv || !chatMessagesContainer || !buttonStartDiv) return;
 
     leadCaptureFieldsDiv.style.display = 'none'; // Hide name, email, phone
     buttonStartDiv.style.display = 'none'; // Ensure "New Conversation" is hidden
+    buttonDiv.style.display = 'flex'; // Ensure Submit button is visible
+    inputWithMessageDiv.style.display = 'flex'; // Ensure message input area is visible
     formOuter.classList.remove("form-outer");
     buttonDiv.classList.remove("button-div"); // Use standard button styling now
     msgInputGroup.classList.add("msg-input-lead-filled");
@@ -375,6 +394,7 @@ function submitMessageToAI(message) {
  * @param {string} message - The message text (can contain basic HTML).
  */
 function lwhOpenCbotaddMessage(sender, message) {
+    // Check if elements exist
     if (!chatMessagesContainer || !botConfigData) return;
 
     const messageContainer = document.createElement('div');
@@ -436,6 +456,7 @@ function lwhOpenCbotaddMessage(sender, message) {
  * Adds a typing indicator for the AI.
  */
 function lwhOpenCbotaddTypingAnimation() {
+     // Check if elements exist
      if (!chatMessagesContainer || !botConfigData) return;
 
     // Remove any existing typing indicator first
@@ -468,6 +489,8 @@ function lwhOpenCbotaddTypingAnimation() {
  * Removes the AI typing indicator.
  */
 function lwhOpenCbotremoveTypingAnimation() {
+    // Check if container exists
+    if (!chatbotContainer) return;
     chatbotContainer.querySelectorAll('.typing-indicator').forEach(el => el.remove());
 }
 
@@ -516,6 +539,7 @@ function lwhOpenCbotcopyText(event) {
  * Fetches the AI response from the backend API.
  */
 async function lwhOpenCbotfetchData() {
+    // Check if button exists
     if (isFetching || !submitButton) return;
 
     setSubmitButtonState(true); // Disable button during fetch
@@ -587,6 +611,7 @@ async function lwhOpenCbotfetchData() {
  * Fetches the initial chatbot configuration from the backend.
  */
 async function lwhOpenCbotfetchBotConfiguration() {
+    // Check if elements exist
     if (!loadingIndicator || !chatMessagesContainer) return;
 
     showLoading(true);
@@ -623,7 +648,8 @@ async function lwhOpenCbotfetchBotConfiguration() {
         showCustomAlert('Oops! Could not load chatbot configuration.', '#991a1a');
         if(chatStatusElement) {
             chatStatusElement.innerHTML = `<span></span> Error`;
-            chatStatusElement.querySelector('span').style.background = '#ff0000';
+             const span = chatStatusElement.querySelector('span'); // Find span after setting innerHTML
+             if (span) span.style.background = '#ff0000';
         }
         // Disable input if config fails
         setSubmitButtonState(true);
@@ -681,9 +707,10 @@ function updateChatbotUI(config) {
  * @param {Array} buttons - Array of button objects from config.
  */
 function renderStartupButtons(buttons) {
-    let startupBtnsDiv = chatbotContainer.querySelector(".startup-btns");
+    let startupBtnsDiv = chatbotContainer?.querySelector(".startup-btns"); // Use optional chaining
     if (!startupBtnsDiv) {
-         // Create the container if it doesn't exist
+         // Create the container if it doesn't exist and container exists
+         if (!chatbotContainer) return; // Exit if main container not found
          startupBtnsDiv = document.createElement('div');
          startupBtnsDiv.classList.add('startup-btns');
          chatMessagesContainer?.after(startupBtnsDiv); // Place after messages
@@ -691,7 +718,8 @@ function renderStartupButtons(buttons) {
 
     if (buttons && buttons.length > 0) {
         let startupBtnsHtml = buttons.map(btn =>
-            `<p data-prompt="${escapeHtml(btn.buttonPrompt)}">${escapeHtml(btn.buttonText)}</p>`
+             // Ensure prompt exists before using escapeHtml
+            `<p data-prompt="${escapeHtml(btn.buttonPrompt || '')}">${escapeHtml(btn.buttonText || '')}</p>`
         ).join('');
         startupBtnsDiv.innerHTML = startupBtnsHtml;
 
@@ -787,6 +815,7 @@ function showCustomAlert(message, color = '#333') {
         }, 3500); // Slightly longer display time
     } else {
          // Fallback to standard alert if popup element isn't found
+         console.warn("Popup element not found, falling back to alert:", message);
          alert(message);
     }
 }
@@ -798,6 +827,153 @@ function showCustomAlert(message, color = '#333') {
  * @param {string} [text=''] - Optional text to display while disabled (e.g., 'Sending...').
  */
 function setSubmitButtonState(disabled, text = '') {
+    // Check if button exists
+    if (!submitButton) return;
+    submitButton.disabled = disabled;
+    const icon = submitButton.querySelector('i');
+    const span = submitButton.querySelector('span');
+
+    if (disabled) {
+        if (icon) icon.style.display = 'none'; // Hide icon
+        if (span) {
+             span.textContent = text || 'Sending...'; // Default disabled text
+             span.style.display = 'inline'; // Show text
+        }
+    } else {
+         // Restore normal state (Icon visible, text hidden for send button)
+         if (icon) icon.style.display = 'inline'; // Show icon
+         if (span) span.style.display = 'none'; // Hide text
+    }
+}
+
+/**
+ * Simple HTML escaping function.
+ * @param {string} str - String to escape.
+ * Renders the initial quick-reply buttons.
+ * @param {Array} buttons - Array of button objects from config.
+ */
+function renderStartupButtons(buttons) {
+    let startupBtnsDiv = chatbotContainer?.querySelector(".startup-btns"); // Use optional chaining
+    if (!startupBtnsDiv) {
+         // Create the container if it doesn't exist and container exists
+         if (!chatbotContainer) return; // Exit if main container not found
+         startupBtnsDiv = document.createElement('div');
+         startupBtnsDiv.classList.add('startup-btns');
+         chatMessagesContainer?.after(startupBtnsDiv); // Place after messages
+    }
+
+    if (buttons && buttons.length > 0) {
+        let startupBtnsHtml = buttons.map(btn =>
+             // Ensure prompt exists before using escapeHtml
+            `<p data-prompt="${escapeHtml(btn.buttonPrompt || '')}">${escapeHtml(btn.buttonText || '')}</p>`
+        ).join('');
+        startupBtnsDiv.innerHTML = startupBtnsHtml;
+
+         // Add event listener using event delegation
+         startupBtnsDiv.addEventListener('click', handleStartupButtonClick);
+
+         // Show only if not captured lead and has buttons
+         if(!leadCaptured) {
+             startupBtnsDiv.style.display = 'flex';
+         } else {
+             startupBtnsDiv.style.display = 'none';
+         }
+
+    } else {
+        startupBtnsDiv.innerHTML = ''; // Clear if no buttons
+        startupBtnsDiv.style.display = 'none';
+    }
+}
+
+/**
+ * Handles clicks on startup buttons using event delegation.
+ * @param {Event} event
+ */
+function handleStartupButtonClick(event) {
+     if (event.target.tagName === 'P') {
+        const prompt = event.target.dataset.prompt;
+        if (prompt) {
+            // Simulate form submission with the button's prompt
+            lwhOpenCbotonFormSubmit(new Event('submit'), prompt); // Pass a dummy event object
+            // Hide the buttons after one is clicked
+            const startupBtnContainer = event.currentTarget; // The container div
+             if (startupBtnContainer) {
+                 startupBtnContainer.style.display = 'none';
+                 // Optionally remove listener if only one click is allowed
+                 // startupBtnContainer.removeEventListener('click', handleStartupButtonClick);
+             }
+        }
+     }
+}
+
+
+// --- Utility Functions ---
+
+/**
+ * Generates a unique numeric string ID for the lead session.
+ * @returns {string}
+ */
+function generateLeadId() {
+    // Simple approach: timestamp + random number (adjust length/complexity as needed)
+    return Date.now().toString() + Math.floor(Math.random() * 10000);
+}
+
+/**
+ * Shows or hides the loading indicator.
+ * @param {boolean} show - True to show, false to hide.
+ */
+function showLoading(show) {
+    if (loadingIndicator) {
+        loadingIndicator.style.display = show ? 'flex' : 'none';
+    }
+}
+
+/**
+ * Displays a custom popup/alert message.
+ * @param {string} message - The message to display.
+ * @param {string} [color='#333'] - Optional text color.
+ */
+function showCustomAlert(message, color = '#333') {
+    // Replace this with your preferred modal/popup implementation
+    // For now, using the existing popup element
+    if (popupElement) {
+        const innerPopup = popupElement.querySelector('p');
+        if(innerPopup) {
+            innerPopup.textContent = message;
+            innerPopup.style.color = color;
+        }
+        popupElement.style.display = 'block';
+        popupElement.style.opacity = 1; // Ensure visible
+        popupElement.classList.add('popup-animation'); // Start animation
+
+        // Auto-hide after a delay
+        setTimeout(() => {
+             if (popupElement) {
+                popupElement.classList.remove('popup-animation');
+                // Allow animation to finish before hiding
+                 setTimeout(() => {
+                      if (popupElement) {
+                         popupElement.style.display = 'none';
+                         popupElement.style.opacity = 0;
+                      }
+                 }, 500); // Match animation duration if possible
+             }
+        }, 3500); // Slightly longer display time
+    } else {
+         // Fallback to standard alert if popup element isn't found
+         console.warn("Popup element not found, falling back to alert:", message);
+         alert(message);
+    }
+}
+
+
+/**
+ * Sets the disabled state and text of the submit button.
+ * @param {boolean} disabled - True to disable, false to enable.
+ * @param {string} [text=''] - Optional text to display while disabled (e.g., 'Sending...').
+ */
+function setSubmitButtonState(disabled, text = '') {
+    // Check if button exists
     if (!submitButton) return;
     submitButton.disabled = disabled;
     const icon = submitButton.querySelector('i');
@@ -823,14 +999,13 @@ function setSubmitButtonState(disabled, text = '') {
  */
 function escapeHtml(str) {
     if (!str) return '';
-    return str.replace(/[&<>"']/g, function(match) {
-        switch (match) {
-            case '&': return '&amp;';
-            case '<': return '&lt;';
-            case '>': return '&gt;';
-            case '"': return '&quot;';
-            case "'": return '&#39;'; // Use HTML entity for single quote
-            default: return match;
-        }
-    });
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;' // Use HTML entity for single quote
+    };
+    return str.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
+
