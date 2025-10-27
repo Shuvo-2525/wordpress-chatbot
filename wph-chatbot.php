@@ -29,31 +29,32 @@
  require_once CHATBOT_PLUGIN_DIR . 'includes/chatbot-functions.php';
  require_once CHATBOT_PLUGIN_DIR . 'includes/chatbot-admin-settings.php';
  
- // Initialize the REST API class
- function chatbot_plugin_init() {
-     $chatbot_api = new Chatbot_API();
-     $chatbot_api->register_routes();
- }
- add_action('rest_api_init', 'chatbot_plugin_init');
- 
- /**
-  * IMPROVEMENT: Helper function to check if the chatbot is enabled.
-  * This avoids using global variables and centralizes the logic.
-  *
-  * @return bool
-  */
- function wph_is_chatbot_enabled() {
-     $bot_display = get_option('wph_chatbot_enabled', 1);
-     
-     // Check for explicit '0' (disabled) or empty/null which we'll treat as disabled.
-     // '1' or any other value (from default) is considered enabled.
-     if ($bot_display === '0' || $bot_display === 0 || $bot_display === "" || $bot_display === null) {
-         return false;
-     }
-     
-     // Default to enabled (value of 1)
-     return true;
- }
+// Initialize the REST API class
+function shuriken_chatbot_plugin_init() {
+    $chatbot_api = new Chatbot_API();
+    $chatbot_api->register_routes();
+}
+add_action('rest_api_init', 'shuriken_chatbot_plugin_init');
+/**
+ * IMPROVEMENT: Helper function to check if the chatbot is enabled.
+ * This avoids using global variables and centralizes the logic.
+ *
+ * @return bool
+ */
+if (!function_exists('wph_is_chatbot_enabled')) {
+    function wph_is_chatbot_enabled() {
+        $bot_display = get_option('wph_chatbot_enabled', 1);
+
+        // Check for explicit '0' (disabled) or empty/null which we'll treat as disabled.
+        // '1' or any other value (from default) is considered enabled.
+        if ($bot_display === '0' || $bot_display === 0 || $bot_display === "" || $bot_display === null) {
+            return false;
+        }
+
+        // Default to enabled (value of 1)
+        return true;
+    }
+}
  
  
  add_action('wp_head', 'wph_chatbot_dynamic_css');
@@ -63,7 +64,8 @@
   * This version wraps the mobile variables in a (max-width: 768px) media query.
   * UPDATED: Includes the theme color variable.
   */
- function wph_chatbot_dynamic_css() {
+if (!function_exists('wph_chatbot_dynamic_css')) {
+function wph_chatbot_dynamic_css() {
      // Get the chatbot position from the options
      $chatbot_position = get_option('wph_chatbot_position', 'bottom-right'); // Default to 'bottom-right'
      
@@ -75,21 +77,21 @@
      $css = '';
  
      // Determine the CSS based on the selected position
-     if ($chatbot_position === 'bottom-left') {
-         $css = '
-         <style>
-             :root {
-                 --chatbot-image-position-right: 93%;
-                 --chatbot-position-right: 71%;
-                 --chatbot-theme-color: ' . esc_attr($theme_color) . '; /* NEW */
-             }
-             @media (max-width: 768px) {
-                 :root {
-                     --chatbot-image-position-right-mob: 75%;
-                     --chatbot-position-right-mob: 71%;
-                 }
-             }
-         </style>';
+    if ($chatbot_position === 'bottom-left') {
+        $css = "
+        <style>
+            :root {
+                --chatbot-image-position-right: 93%;
+                --chatbot-position-right: 71%;
+                --chatbot-theme-color: " . esc_attr($theme_color) . "; /* NEW */
+            }
+            @media (max-width: 768px) {
+                :root {
+                    --chatbot-image-position-right-mob: 75%;
+                    --chatbot-position-right-mob: 71%;
+                }
+            }
+        </style>";
      } elseif ($chatbot_position === 'bottom-right') {
          $css = '
          <style>
@@ -121,19 +123,22 @@
   * Function to include the chatbot template
   * IMPROVEMENT: Uses the wph_is_chatbot_enabled() helper function.
   */
- function display_chatbot_in_footer() {
-     if (wph_is_chatbot_enabled()) {  
-         // Include the chatbot template in the footer
-         include CHATBOT_PLUGIN_DIR . 'templates/chatbot-template.php';
-     }
- }
+if (!function_exists('display_chatbot_in_footer')) {
+    function display_chatbot_in_footer() {
+        if (wph_is_chatbot_enabled()) {
+            // Include the chatbot template in the footer
+            include CHATBOT_PLUGIN_DIR . 'templates/chatbot-template.php';
+        }
+    }
+}
  add_action('wp_footer', 'display_chatbot_in_footer');
  
  /**
   * Enqueue assets only if the chatbot is enabled
   * IMPROVEMENT: Uses the wph_is_chatbot_enabled() helper function.
   */
- function chatbot_plugin_enqueue_assets() {
+if (!function_exists('chatbot_plugin_enqueue_assets')) {
+function chatbot_plugin_enqueue_assets() {
      // Check if the chatbot is enabled
      if (wph_is_chatbot_enabled()) {
          // Enqueue main CSS and JS files with versioning
@@ -145,7 +150,8 @@
              'apiUrl' => rest_url('myapi/v1/chat-bot/'),
              'configUrl' => rest_url('myapi/v1/chat-bot-config'),
          ]);
-     }
+    }
+    }
  }
  add_action('wp_enqueue_scripts', 'chatbot_plugin_enqueue_assets');
  
@@ -205,35 +211,38 @@
  }
  add_action( 'init', 'register_wph_entries_cpt', 0 );
  }
- function wph_remove_all_except_custom_meta_box() {
-     global $wp_meta_boxes;
- 
-     // Define your custom post type and custom metabox ID
-     $post_type = 'wph_entries';
-     $allowed_meta_box_id = 'wph_entries_meta_box';
- 
-     // Loop through all contexts (normal, side, advanced) and priorities to remove each metabox
-     if (isset($wp_meta_boxes[$post_type])) {
-         foreach ($wp_meta_boxes[$post_type] as $context => $priorities) {
-             foreach ($priorities as $priority => $meta_boxes) {
-                 foreach ($meta_boxes as $meta_box_id => $meta_box) {
-                     // Remove metabox if it's not the allowed custom one
-                     if ($meta_box_id !== $allowed_meta_box_id) {
-                         unset($wp_meta_boxes[$post_type][$context][$priority][$meta_box_id]);
-                     }
-                 }
-             }
-         }
-     }
- }
+if (!function_exists('wph_remove_all_except_custom_meta_box')) {
+function wph_remove_all_except_custom_meta_box() {
+    global $wp_meta_boxes;
+
+    // Define your custom post type and custom metabox ID
+    $post_type = 'wph_entries';
+    $allowed_meta_box_id = 'wph_entries_meta_box';
+
+    // Loop through all contexts (normal, side, advanced) and priorities to remove each metabox
+    if (isset($wp_meta_boxes[$post_type])) {
+        foreach ($wp_meta_boxes[$post_type] as $context => $priorities) {
+            foreach ($priorities as $priority => $meta_boxes) {
+                foreach ($meta_boxes as $meta_box_id => $meta_box) {
+                    // Remove metabox if it's not the allowed custom one
+                    if ($meta_box_id !== $allowed_meta_box_id) {
+                        unset($wp_meta_boxes[$post_type][$context][$priority][$meta_box_id]);
+                    }
+                }
+            }
+        }
+    }
+}
+}
  add_action('add_meta_boxes', 'wph_remove_all_except_custom_meta_box', 99);
  // Hook to add a custom meta box
  
  include CHATBOT_PLUGIN_DIR . 'templates/admin-entry-details.php';
  
  
- // Add custom columns to CPT admin list
- function wph_entries_custom_columns($columns) {
+// Add custom columns to CPT admin list
+if (!function_exists('wph_entries_custom_columns')) {
+function wph_entries_custom_columns($columns) {
      $columns['name'] = 'Name';
      $columns['email'] = 'Email';
      $columns['phone'] = 'Phone';
@@ -242,10 +251,12 @@
      $columns['user_country'] = 'User Country';
      return $columns;
  }
+}
  add_filter('manage_wph_entries_posts_columns', 'wph_entries_custom_columns');
  
  // Populate the custom columns with meta values
- function wph_entries_custom_column_content($column, $post_id) {
+if (!function_exists('wph_entries_custom_column_content')) {
+function wph_entries_custom_column_content($column, $post_id) {
      switch ($column) {
          case 'name':
              echo esc_html(get_post_meta($post_id, '_name', true));
@@ -273,15 +284,18 @@
  add_action('manage_wph_entries_posts_custom_column', 'wph_entries_custom_column_content', 10, 2);
  
  // Make columns sortable if needed
- function wph_entries_sortable_columns($columns) {
+    if (!function_exists('wph_entries_sortable_columns')) {
+    function wph_entries_sortable_columns($columns) {
      $columns['name'] = 'name';
      $columns['email'] = 'email';
      $columns['phone'] = 'phone';
      return $columns;
  }
+    }
  add_filter('manage_edit-wph_entries_sortable_columns', 'wph_entries_sortable_columns');
  
- function redirect_add_new_wph_entries() {
+    if (!function_exists('redirect_add_new_wph_entries')) {
+    function redirect_add_new_wph_entries() {
      global $pagenow;
  
      if ($pagenow === 'post-new.php' && isset($_GET['post_type']) && $_GET['post_type'] === 'wph_entries') {
@@ -290,7 +304,9 @@
      }
  }
  add_action('admin_init', 'redirect_add_new_wph_entries');
- function remove_add_new_button_for_wph_entries() {
+    }
+    if (!function_exists('remove_add_new_button_for_wph_entries')) {
+    function remove_add_new_button_for_wph_entries() {
      global $pagenow;
  
      if ($pagenow === 'edit.php' && isset($_GET['post_type']) && $_GET['post_type'] === 'wph_entries') {
@@ -312,7 +328,8 @@
   * the links in a stable, server-side way.
   * FIXED: Corrected the call to get_delete_post_link.
   */
- function wph_entries_row_actions($actions, $post) {
+if (!function_exists('wph_entries_row_actions')) {
+function wph_entries_row_actions($actions, $post) {
      if ($post->post_type === 'wph_entries') {
          // Remove all default actions except Trash and View (which we customize)
          unset($actions['edit']);
@@ -342,7 +359,8 @@
  add_filter('post_row_actions', 'wph_entries_row_actions', 20, 2);
  
  
- function add_inline_css_to_post_editor_wph() {
+if (!function_exists('add_inline_css_to_post_editor_wph')) {
+function add_inline_css_to_post_editor_wph() {
      // Ensure this runs only on the post edit screen for 'wph_entries'
      $screen = get_current_screen();
      if ($screen && $screen->id === 'wph_entries' && $screen->base === 'post') {
