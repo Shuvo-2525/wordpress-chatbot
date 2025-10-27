@@ -1,0 +1,56 @@
+/*
+ * WPH Chatbot Admin Styles
+ * This file styles the new Tailwind-based admin UI.
+ */
+
+/* Force our wrapper to be full-width */
+.wph-chatbot-admin-wrap {
+    margin-left: -20px;
+    padding-right: 20px;
+}
+
+/* Hide the default WordPress form table layout */
+.wph-chatbot-admin-wrap > form > table.form-table,
+.wph-chatbot-admin-wrap > .updated {
+    display: none;
+}
+
+/* Style the form tables inside our new cards */
+.wph-chatbot-form-table {
+    width: 100%;
+    border: none;
+    margin-top: 0;
+}
+
+.wph-chatbot-form-table th,
+.wph-chatbot-form-table td {
+    padding: 20px 0;
+    border-bottom: 1px solid #E3E5E8; /* Equivalent to border-border-color */
+    vertical-align: top;
+}
+
+.wph-chatbot-form-table tr:first-child th,
+.wph-chatbot-form-table tr:first-child td {
+    padding-top: 0;
+}
+
+.wph-chatbot-form-table tr:last-child th,
+.wph-chatbot-form-table tr:last-child td {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.wph-chatbot-form-table th {
+    padding-right: 24px;
+    width: 33.33%;
+}
+
+.wph-chatbot-form-table td {
+    width: 66.66%;
+}
+
+/* Ensure the save button has correct margins */
+.wph-chatbot-admin-wrap header .submit {
+    margin: 0;
+    padding: 0;
+}
