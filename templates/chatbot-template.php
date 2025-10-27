@@ -29,7 +29,7 @@
                 </div>
                 <div class="chat__header">
                     <div id="chat_header_name">
-                        <div class="chat__title"> WPHub AI Chatbot
+                        <div class="chat__title" id="wph_chatbot_header_title_display"> Shuriken AI Chatbot
                         </div>
                         <div>
                             <div class="chat__status"><span></span> Offline</div>

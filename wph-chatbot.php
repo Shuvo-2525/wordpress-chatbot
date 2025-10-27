@@ -117,6 +117,7 @@ function wph_chatbot_dynamic_css() {
          echo $css; // No need for escaping here as we already escaped $theme_color
      }
  }
+}
  
  
  /**
@@ -357,7 +358,7 @@ function wph_entries_row_actions($actions, $post) {
  }
  // Use priority 20 to run after default actions are added
  add_filter('post_row_actions', 'wph_entries_row_actions', 20, 2);
- 
+}
  
 if (!function_exists('add_inline_css_to_post_editor_wph')) {
 function add_inline_css_to_post_editor_wph() {
@@ -381,7 +382,7 @@ function add_inline_css_to_post_editor_wph() {
      }
  }
  add_action('admin_enqueue_scripts', 'add_inline_css_to_post_editor_wph');
- 
+}
  
  /**
   * CRITICAL FIX: Removed the `client_data_send_ai_chatbot` function
@@ -398,11 +399,7 @@ function add_inline_css_to_post_editor_wph() {
  
  
  // Close any remaining wrappers introduced earlier
-}
-}
-}
-}
-}
+// } // This extra closing brace might be an error in the original, removing it.
 
 // register_activation_hook(__FILE__, 'client_data_send_ai_chatbot'); // This line has been removed.
-
+?>
