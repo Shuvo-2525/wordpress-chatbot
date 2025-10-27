@@ -112,7 +112,8 @@ function wph_chatbot_admin_enqueue_assets($hook_suffix) {
 
 
 // --- Utility function for rendering settings form wrapper ---
-function wph_chatbot_form_wrapper_start($page_slug, $page_title) {
+// FIX: Added $settings_group parameter to specify which group to use
+function wph_chatbot_form_wrapper_start($page_slug, $page_title, $settings_group) {
     ?>
     <div class="wrap wph-chatbot-admin-wrap font-sans text-text-primary">
         <script>
@@ -161,7 +162,8 @@ function wph_chatbot_form_wrapper_start($page_slug, $page_title) {
 
         <form method="post" action="options.php">
             <?php
-            settings_fields('wph_chatbot_options_group');
+            // FIX: Use the dynamic $settings_group variable
+            settings_fields($settings_group);
             // We'll manually render sections
             ?>
     <?php
@@ -466,7 +468,8 @@ function wph_chatbot_main_page() {
 
 // NEW: Function to display the "Train Bot" page
 function wph_chatbot_train_bot_page() {
-    wph_chatbot_form_wrapper_start('wph-chatbot-train', 'Train Your Chatbot');
+    // FIX: Pass the correct settings group name: 'wph_chatbot_train_group'
+    wph_chatbot_form_wrapper_start('wph-chatbot-train', 'Train Your Chatbot', 'wph_chatbot_train_group');
 
     wph_chatbot_render_card('Bot Knowledge Base', function() {
         wph_chatbot_render_textarea_field(
@@ -545,7 +548,8 @@ function wph_chatbot_train_bot_page() {
 
 // Function to display the settings page
 function wph_chatbot_settings_page() {
-    wph_chatbot_form_wrapper_start('wph-chatbot-settings', 'WPH Chatbot Settings');
+    // FIX: Pass the correct settings group name: 'wph_chatbot_settings_group'
+    wph_chatbot_form_wrapper_start('wph-chatbot-settings', 'WPH Chatbot Settings', 'wph_chatbot_settings_group');
 
     // API Settings Card
     wph_chatbot_render_card('API & General Settings', function() {
@@ -614,29 +618,28 @@ function wph_sanitize_apostrophe($input) {
 add_action('admin_init', 'wph_chatbot_settings_init');
 
 function wph_chatbot_settings_init() {
-    register_setting('wph_chatbot_options_group', 'wph_gemini_api_key', 'sanitize_text_field');
-    register_setting('wph_chatbot_options_group', 'wph_chatbot_enabled', [
+    
+    // FIX: Register settings for the 'wph_chatbot_settings_group'
+    register_setting('wph_chatbot_settings_group', 'wph_gemini_api_key', 'sanitize_text_field');
+    register_setting('wph_chatbot_settings_group', 'wph_chatbot_enabled', [
         'default' => 1,
         'type' => 'integer',
         'sanitize_callback' => 'absint',
     ]);
-    register_setting('wph_chatbot_options_group', 'wph_chatbot_position', 'sanitize_text_field');
-    register_setting('wph_chatbot_options_group', 'wph_user_image', 'esc_url_raw');
-    register_setting('wph_chatbot_options_group', 'wph_bot_image', 'esc_url_raw');
+    register_setting('wph_chatbot_settings_group', 'wph_chatbot_position', 'sanitize_text_field');
+    register_setting('wph_chatbot_settings_group', 'wph_user_image', 'esc_url_raw');
+    register_setting('wph_chatbot_settings_group', 'wph_bot_image', 'esc_url_raw');
+    register_setting('wph_chatbot_settings_group', 'wph_chatbot_header_title', 'sanitize_text_field');
+    register_setting('wph_chatbot_settings_group', 'wph_chatbot_theme_color', 'sanitize_hex_color');
 
-    // Use a more standard sanitization
-    register_setting('wph_chatbot_options_group', 'wph_welcome_message', 'sanitize_textarea_field');
-    register_setting('wph_chatbot_options_group', 'wph_fallback_responses', 'sanitize_textarea_field');
-    register_setting('wph_chatbot_options_group', 'wph_organization_info', 'sanitize_textarea_field');
-    
-    register_setting('wph_chatbot_options_group', 'wph_button_1_query', 'sanitize_text_field');
-    register_setting('wph_chatbot_options_group', 'wph_button_2_query', 'sanitize_text_field');
-    register_setting('wph_chatbot_options_group', 'wph_button_3_query', 'sanitize_text_field');
-    register_setting('wph_chatbot_options_group', 'wph_button_4_query', 'sanitize_text_field');
-    register_setting('wph_chatbot_options_group', 'wph_button_5_query', 'sanitize_text_field');
-
-    // NEW: Register customization settings
-    register_setting('wph_chatbot_options_group', 'wph_chatbot_header_title', 'sanitize_text_field');
-    register_setting('wph_chatbot_options_group', 'wph_chatbot_theme_color', 'sanitize_hex_color');
+    // FIX: Register settings for the 'wph_chatbot_train_group'
+    register_setting('wph_chatbot_train_group', 'wph_welcome_message', 'sanitize_textarea_field');
+    register_setting('wph_chatbot_train_group', 'wph_fallback_responses', 'sanitize_textarea_field');
+    register_setting('wph_chatbot_train_group', 'wph_organization_info', 'sanitize_textarea_field');
+    register_setting('wph_chatbot_train_group', 'wph_button_1_query', 'sanitize_text_field');
+    register_setting('wph_chatbot_train_group', 'wph_button_2_query', 'sanitize_text_field');
+    register_setting('wph_chatbot_train_group', 'wph_button_3_query', 'sanitize_text_field');
+    register_setting('wph_chatbot_train_group', 'wph_button_4_query', 'sanitize_text_field');
+    register_setting('wph_chatbot_train_group', 'wph_button_5_query', 'sanitize_text_field');
 }
-
+?>
