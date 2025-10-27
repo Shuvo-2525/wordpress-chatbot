@@ -1,19 +1,20 @@
  <?php
  /*
-  * Plugin Name: WPH AI Chatbot
+  * Plugin Name: Shuriken AI Chatbot
   * Plugin URI: https://webpresshub.net/free-ai-chatbot/
   * Description: It’s a free AI-powered chatbot for WordPress, powered by the Gemini API! This open-source plugin allows you to easily train your chatbot, engage visitors, collect user data, and save time. Fully customizable and simple to integrate.
-  * Version: 2.1.0
+  * Version: 1.1.0
   * Requires at least: 5.2
   * Requires PHP: 7.2
-  * Author: WebPressHub
-  * Author URI: https://webpresshub.net/
+  * Author: Customized by ShurikenIT [https://shurikenit.com]
+  * Author URI: https://shurikenit.com
   * License: GPL v2 or later
   * License URI: https://www.gnu.org/licenses/gpl-2.0.html
   * Update URI: https://webpresshub.net/free-ai-chatbot/
   * Text Domain: wph-ai-chatbot
   * Domain Path: /languages
   */
+ 
  
  if (!defined('ABSPATH')) exit; // Exit if accessed directly
  

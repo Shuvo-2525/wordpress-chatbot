@@ -5,8 +5,8 @@ add_action('admin_menu', 'wph_chatbot_menu');
 function wph_chatbot_menu() {
     // Add the main menu item
     add_menu_page(
-        'WPH Chatbot', // Page title
-        'WPH Chatbot', // Menu title
+        'Shuriken AI Chatbot', // Page title
+        'Shuriken AI Chatbot', // Menu title
         'manage_options', // Capability
         'wph-chatbot', // Menu slug
         'wph_chatbot_main_page', // Function to display the main page content
@@ -14,7 +14,7 @@ function wph_chatbot_menu() {
         6 // Position
     );
 
-    // Add the dashboard submenu (so "WPH Chatbot" is clickable)
+    // Add the dashboard submenu (so "Shuriken AI Chatbot" is clickable)
     add_submenu_page(
         'wph-chatbot', // Parent slug
         'Dashboard', // Page title
@@ -408,7 +408,7 @@ function wph_chatbot_main_page() {
         <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
             <div>
                 <h1 class="text-3xl font-bold text-text-primary">
-                    WPH Chatbot Dashboard
+                    Shuriken AI Chatbot Dashboard
                 </h1>
                 <p class="text-text-secondary mt-1">
                     Welcome! Here's an overview of your chatbot's activity.
@@ -554,7 +554,7 @@ function wph_chatbot_train_bot_page() {
 // Function to display the settings page
 function wph_chatbot_settings_page() {
     // FIX: Pass the correct settings group name: 'wph_chatbot_settings_group'
-    wph_chatbot_form_wrapper_start('wph-chatbot-settings', 'WPH Chatbot Settings', 'wph_chatbot_settings_group');
+    wph_chatbot_form_wrapper_start('wph-chatbot-settings', 'Shuriken AI Chatbot Settings', 'wph_chatbot_settings_group');
 
     // API Settings Card
     wph_chatbot_render_card('API & General Settings', function() {
