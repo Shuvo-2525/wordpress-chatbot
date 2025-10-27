@@ -84,11 +84,12 @@ function wph_chatbot_admin_enqueue_assets($hook_suffix) {
         // Enqueue WordPress Media Uploader scripts
         wp_enqueue_media();
 
-        // Enqueue our new admin JS for the media uploader
+        // NEW: Enqueue WP Color Picker styles and scripts
+        wp_enqueue_style('wp-color-picker');
         wp_enqueue_script(
             'wph-chatbot-admin-scripts',
             CHATBOT_PLUGIN_URL . 'assets/js/chatbot-admin-scripts.js',
-            ['jquery'],
+            ['jquery', 'wp-color-picker'], // Add wp-color-picker dependency
             CHATBOT_PLUGIN_VERSION,
             true
         );
@@ -214,6 +215,32 @@ function wph_chatbot_render_text_field($name, $label, $description = '', $placeh
     </tr>
     <?php
 }
+
+// NEW: Utility function for rendering a color picker field
+function wph_chatbot_render_color_field($name, $label, $description = '', $default_color = '#00665E') {
+    $color = get_option($name, $default_color);
+    ?>
+    <tr valign="top">
+        <th scope="row" class="w-1/3">
+            <label for="<?php echo esc_attr($name); ?>" class="text-base font-semibold text-text-primary"><?php echo esc_html($label); ?></label>
+        </th>
+        <td class="w-2/3">
+            <input 
+                type="text" 
+                id="<?php echo esc_attr($name); ?>" 
+                name="<?php echo esc_attr($name); ?>" 
+                value="<?php echo esc_attr($color); ?>"
+                class="wph-color-picker"
+                data-default-color="<?php echo esc_attr($default_color); ?>"
+            />
+            <?php if ($description) : ?>
+                <p class="text-sm text-text-muted mt-2"><?php echo esc_html($description); ?></p>
+            <?php endif; ?>
+        </td>
+    </tr>
+    <?php
+}
+
 
 function wph_chatbot_render_textarea_field($name, $label, $description = '', $rows = 5) {
     ?>
@@ -457,7 +484,7 @@ function wph_chatbot_train_bot_page() {
         wph_chatbot_render_textarea_field(
             'wph_fallback_responses',
             'Fallback Responses',
-            'The message the bot sends when it doesn\'t understand a query.',
+            'The message the bot sends when it doesn't understand a query.',
             3
         );
     });
@@ -547,6 +574,20 @@ function wph_chatbot_settings_page() {
 
     // Appearance Card
     wph_chatbot_render_card('Chatbot Appearance', function() {
+        // NEW: Add Header Title field
+        wph_chatbot_render_text_field(
+            'wph_chatbot_header_title',
+            'Header Title',
+            'The title displayed at the top of the chat window.',
+            'WPHub AI Chatbot'
+        );
+        // NEW: Add Theme Color field
+        wph_chatbot_render_color_field(
+            'wph_chatbot_theme_color',
+            'Theme Color',
+            'Controls the header, buttons, and border color of the chatbot.',
+            '#00665E' // Default teal color
+        );
         wph_chatbot_render_image_uploader_field(
             'wph_user_image',
             'User Image',
@@ -593,4 +634,9 @@ function wph_chatbot_settings_init() {
     register_setting('wph_chatbot_options_group', 'wph_button_3_query', 'sanitize_text_field');
     register_setting('wph_chatbot_options_group', 'wph_button_4_query', 'sanitize_text_field');
     register_setting('wph_chatbot_options_group', 'wph_button_5_query', 'sanitize_text_field');
+
+    // NEW: Register customization settings
+    register_setting('wph_chatbot_options_group', 'wph_chatbot_header_title', 'sanitize_text_field');
+    register_setting('wph_chatbot_options_group', 'wph_chatbot_theme_color', 'sanitize_hex_color');
 }
+

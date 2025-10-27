@@ -1,6 +1,9 @@
 jQuery(document).ready(function ($) {
     'use strict';
 
+    // NEW: Initialize the WP Color Picker
+    $('.wph-color-picker').wpColorPicker();
+
     // This handles the media uploader
     $(document).on('click', '.wph-image-upload-button', function (e) {
         e.preventDefault();
@@ -56,3 +59,4 @@ jQuery(document).ready(function ($) {
         button.hide();
     });
 });
+

@@ -4,7 +4,7 @@
     --chatbot-image-position-bottom: 10%;
     --chatbot-position-bottom: 6%;
     --chatbot-height:45vh;
-    --chatbot-border-color: teal;
+    --chatbot-border-color: var(--chatbot-theme-color, #00665E); /* UPDATED */
     --chatbot-primary-color: #2B2A66;
     --chatbot-secondary-color: #2c2b8e;
     --chatbot-hover-color: #1e8ece;
@@ -59,7 +59,7 @@
     background-color: white;
     position: relative;
     z-index: 9999;
-    border: 2.5px solid #00665E;
+    border: 2.5px solid var(--chatbot-border-color, #00665E); /* UPDATED */
     border-radius: 8px;
     opacity: 0;
     transform: translateY(100%);
@@ -108,12 +108,12 @@ button#start-btn span, div#chat_header_back button {
 .lwh-open-cbot .chat__header {
     display: flex;
     justify-content: space-between;
-    border-bottom: 1.5px solid var(--chatbot-border-color);
+    border-bottom: 1.5px solid var(--chatbot-border-color, #00665E); /* UPDATED */
     padding: 12px 10px;
     align-items: flex-start;
     position: relative;
     z-index: 1;
-	background-color: #00665E;
+	background-color: var(--chatbot-theme-color, #00665E); /* UPDATED */
 	color: white;
 }
 
@@ -262,7 +262,7 @@ button#start-btn span, div#chat_header_back button {
     width: -moz-fit-content;
     width: fit-content;
     align-self: flex-start;
-    /*  display: flex; */
+    /* display: flex; */
     justify-content: space-between;
     gap: 0.5rem;
     position: relative;
@@ -351,7 +351,7 @@ img.bot-image {
 }
 
 .lead-form-open  .chat__input-area>form {
-    border-left: 3px solid var(--chatbot-border-color);
+    border-left: 3px solid var(--chatbot-border-color, #00665E); /* UPDATED */
     border-radius: 0px 5px 5px 0px;
     padding: 25px 10px 12px 10px;
     box-shadow: 0px 2px 3px 3px rgba(0, 0, 0, .08);
@@ -502,7 +502,7 @@ img.bot-image {
     border-radius: 4px;
     padding: 0px 6px 1px 6px;
     color: black;
-    border: 1px solid var(--chatbot-border-color);
+    border: 1px solid var(--chatbot-border-color, #00665E); /* UPDATED */
 }
 
 .lwh-open-cbot .avatar-image {
@@ -513,7 +513,7 @@ img.bot-image {
     display: none;
     flex-wrap: wrap;
     gap: 6px;
-  /*  position: absolute;*/
+  /* position: absolute;*/
     bottom: 0;
 	justify-self: center;
 	    place-content: center;
@@ -522,7 +522,7 @@ margin: 9px 0px 4px 0px;
 
 .lwh-open-cbot .startup-btns p {
     padding: 6px 10px;
-    border: 1px solid var(--chatbot-border-color);
+    border: 1px solid var(--chatbot-border-color, #00665E); /* UPDATED */
     border-radius: 4px;
     width: -moz-fit-content;
     width: fit-content;
@@ -570,7 +570,7 @@ margin: 9px 0px 4px 0px;
 
 .lwh-open-cbot .feedback-form textarea {
     width: 100%;
-    border: 2px solid var(--chatbot-border-color);
+    border: 2px solid var(--chatbot-border-color, #00665E); /* UPDATED */
     outline: none;
     padding: 6px;
     font-size: 16px;
@@ -638,7 +638,7 @@ div#leadCaptureFields {
 
 
 input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus, input[type="number"]:focus{
-	outline: 1px solid teal !important;
+	outline: 1px solid var(--chatbot-theme-color, #00665E) !important; /* UPDATED */
 }
 div.form-outer {
     flex-direction: column;
@@ -648,7 +648,7 @@ div.button-div {
     display: flex;
     width: 100%;
     padding: 10px;
-    background: teal;
+    background: var(--chatbot-theme-color, #00665E); /* UPDATED */
     justify-content: center;
 	border-radius: 5px;
 }
@@ -710,7 +710,7 @@ i.fa-solid.fa-chevron-left {
         .wph-input:not(:placeholder-shown) ~ .wph-label {
             top: -10px;
             font-size: 12px;
-            color: teal;
+            color: var(--chatbot-theme-color, #00665E); /* UPDATED */
         }
     .form-group {
     position: relative;
@@ -720,7 +720,7 @@ i.fa-solid.fa-chevron-left {
     margin: 0 !important;
 }
 .lead-header-container {
-    background: teal;
+    background: var(--chatbot-theme-color, #00665E); /* UPDATED */
     display: block;
     height: 78px;
     margin-bottom: -77px;

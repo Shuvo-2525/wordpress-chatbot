@@ -64,6 +64,10 @@ add_action('wp_head', 'wph_chatbot_dynamic_css');
 function wph_chatbot_dynamic_css() {
     // Get the chatbot position from the options
     $chatbot_position = get_option('wph_chatbot_position', 'bottom-right'); // Default to 'bottom-right'
+    
+    // NEW: Get theme color
+    $theme_color = get_option('wph_chatbot_theme_color', '#00665E'); // Default to teal
+    
     $css = '';
 
     // Determine the CSS based on the selected position
@@ -73,6 +77,7 @@ function wph_chatbot_dynamic_css() {
             :root {
                 --chatbot-image-position-right: 93%;
                 --chatbot-position-right: 71%;
+                --chatbot-theme-color: ' . esc_attr($theme_color) . '; /* NEW */
             }
             @media (max-width: 768px) {
                 :root {
@@ -87,6 +92,7 @@ function wph_chatbot_dynamic_css() {
             :root {
                 --chatbot-image-position-right: 3%;
                 --chatbot-position-right: 3%; 
+                --chatbot-theme-color: ' . esc_attr($theme_color) . '; /* NEW */
             }
              @media (max-width: 768px) {
                 :root {
@@ -317,7 +323,7 @@ function wph_entries_row_actions($actions, $post) {
         $actions['view'] = '<a href="' . esc_url($edit_link) . '">View</a>';
         
         // Add back the trash link
-        $trash_link = get_delete_post_link($post->ID);
+        $trash_link = get_delete_post_link($post_id);
         $actions['trash'] = '<a href="' . esc_url($trash_link) . '" class="submitdelete">Trash</a>';
     }
     return $actions;
@@ -358,3 +364,4 @@ add_action('admin_enqueue_scripts', 'add_inline_css_to_post_editor_wph');
  * which is often not true and is a bad practice.
  */
 // register_activation_hook(__FILE__, 'client_data_send_ai_chatbot'); // This line has been removed.
+

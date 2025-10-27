@@ -35,6 +35,9 @@ if ($bot_status === "" || $bot_status === null) {
     $font_size = '16'; 
     $user_avatar_url = get_option('wph_user_image', plugin_dir_path('assets/images/user-avatar.png', __FILE__));
     $bot_image_url = get_option('wph_bot_image', plugin_dir_path('assets/images/bot-logo.png', __FILE__));
+    
+    // NEW: Get header title
+    $header_title = get_option('wph_chatbot_header_title', 'WPHub AI Chatbot');
 
     // Button queries
     $buttons = [];
@@ -64,7 +67,8 @@ if ($bot_status === "" || $bot_status === null) {
         'fontSize' => $font_size,
         'userAvatarURL' => $user_avatar_url,
         'botImageURL' => $bot_image_url,
-        'commonButtons' => $buttons
+        'commonButtons' => $buttons,
+        'headerTitle' => $header_title // NEW: Add header title to response
     ], 200);
 }
 
