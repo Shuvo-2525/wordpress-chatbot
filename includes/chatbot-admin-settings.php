@@ -151,19 +151,24 @@ function wph_chatbot_form_wrapper_start($page_slug, $page_title, $settings_group
             }
         </script>
         
-        <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
-            <div>
-                <h1 class="text-3xl font-bold text-text-primary"><?php echo esc_html($page_title); ?></h1>
-            </div>
-            <div>
-                <?php submit_button('Save Changes', 'primary large'); ?>
-            </div>
-        </header>
-
+        <!-- FIX: Form tag now wraps the header AND the content -->
         <form method="post" action="options.php">
             <?php
             // FIX: Use the dynamic $settings_group variable
             settings_fields($settings_group);
+            ?>
+            
+            <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-text-primary"><?php echo esc_html($page_title); ?></h1>
+                </div>
+                <div>
+                    <!-- This button is now INSIDE the form -->
+                    <?php submit_button('Save Changes', 'primary large'); ?>
+                </div>
+            </header>
+
+            <?php
             // We'll manually render sections
             ?>
     <?php
@@ -171,7 +176,7 @@ function wph_chatbot_form_wrapper_start($page_slug, $page_title, $settings_group
 
 function wph_chatbot_form_wrapper_end() {
     ?>
-        </form>
+        </form> <!-- FIX: This closing tag matches the opening tag in wrapper_start -->
     </div>
     <?php
 }
