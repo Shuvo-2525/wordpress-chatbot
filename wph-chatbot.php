@@ -3,7 +3,7 @@
  * Plugin Name: WPH AI Chatbot
  * Plugin URI: https://webpresshub.net/free-ai-chatbot/
  * Description: It’s a free AI-powered chatbot for WordPress, powered by the Gemini API! This open-source plugin allows you to easily train your chatbot, engage visitors, collect user data, and save time. Fully customizable and simple to integrate.
- * Version: 1.0.1
+ * Version: 2.1.0
  * Requires at least: 5.2
  * Requires PHP: 7.2
  * Author: WebPressHub
@@ -20,7 +20,8 @@ if (!defined('ABSPATH')) exit; // Exit if accessed directly
 // Define constants
 define('CHATBOT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('CHATBOT_PLUGIN_URL', plugin_dir_url(__FILE__));
-define('CHATBOT_PLUGIN_VERSION', '2.0.9'); // Version for cache-busting
+// IMPROVEMENT: Incremented version number for new changes
+define('CHATBOT_PLUGIN_VERSION', '2.1.0'); // Version for cache-busting
 
 // Load necessary files
 require_once CHATBOT_PLUGIN_DIR . 'includes/class-chatbot-api.php';
@@ -34,35 +35,67 @@ function chatbot_plugin_init() {
 }
 add_action('rest_api_init', 'chatbot_plugin_init');
 
+/**
+ * IMPROVEMENT: Helper function to check if the chatbot is enabled.
+ * This avoids using global variables and centralizes the logic.
+ *
+ * @return bool
+ */
+function wph_is_chatbot_enabled() {
+    $bot_display = get_option('wph_chatbot_enabled', 1);
+    
+    // Check for explicit '0' (disabled) or empty/null which we'll treat as disabled.
+    // '1' or any other value (from default) is considered enabled.
+    if ($bot_display === '0' || $bot_display === 0 || $bot_display === "" || $bot_display === null) {
+        return false;
+    }
+    
+    // Default to enabled (value of 1)
+    return true;
+}
 
 
 add_action('wp_head', 'wph_chatbot_dynamic_css');
+/**
+ * FIX: The original function defined mobile CSS variables but didn't
+ * wrap them in a media query, so they were never applied correctly.
+ * This version wraps the mobile variables in a (max-width: 768px) media query.
+ */
 function wph_chatbot_dynamic_css() {
     // Get the chatbot position from the options
     $chatbot_position = get_option('wph_chatbot_position', 'bottom-right'); // Default to 'bottom-right'
-
-    // Initialize CSS variable
     $css = '';
 
     // Determine the CSS based on the selected position
     if ($chatbot_position === 'bottom-left') {
         $css = '
         <style>
-            .lwh-open-cbot, .lwh-open-cbot :root {
+            :root {
                 --chatbot-image-position-right: 93%;
                 --chatbot-position-right: 71%;
-				 --chatbot-image-position-right-mob: 75%;
-    --chatbot-position-right-mob: 71%;
-
+            }
+            @media (max-width: 768px) {
+                :root {
+                    --chatbot-image-position-right-mob: 75%;
+                    --chatbot-position-right-mob: 71%;
+                }
             }
         </style>';
     } elseif ($chatbot_position === 'bottom-right') {
         $css = '
         <style>
-            .lwh-open-cbot, .lwh-open-cbot :root {
+            :root {
                 --chatbot-image-position-right: 3%;
                 --chatbot-position-right: 3%; 
-				
+            }
+             @media (max-width: 768px) {
+                :root {
+                    /* Add mobile-specific overrides for right position if needed */
+                    /* Example:
+                    --chatbot-image-position-right-mob: 5%;
+                    --chatbot-position-right-mob: 5%;
+                    */
+                }
             }
         </style>';
     }
@@ -73,28 +106,26 @@ function wph_chatbot_dynamic_css() {
     }
 }
 
-// Check if the chatbot is enabled in settings
-$bot_display = get_option('wph_chatbot_enabled', 1);  // Default to 1 (enabled) if not set
-if ($bot_display === "" || $bot_display === null) {
-    $bot_display = 0;  // Default to disabled if null or empty
-}
 
-// Function to include the chatbot template
+/**
+ * Function to include the chatbot template
+ * IMPROVEMENT: Uses the wph_is_chatbot_enabled() helper function.
+ */
 function display_chatbot_in_footer() {
-    global $bot_display;  
-    if ($bot_display) {  
+    if (wph_is_chatbot_enabled()) {  
         // Include the chatbot template in the footer
         include CHATBOT_PLUGIN_DIR . 'templates/chatbot-template.php';
     }
 }
 add_action('wp_footer', 'display_chatbot_in_footer');
 
-// Enqueue assets only if the chatbot is enabled
+/**
+ * Enqueue assets only if the chatbot is enabled
+ * IMPROVEMENT: Uses the wph_is_chatbot_enabled() helper function.
+ */
 function chatbot_plugin_enqueue_assets() {
-    global $bot_display;  // Make sure we're using the correct variable
-
     // Check if the chatbot is enabled
-    if ($bot_display) {
+    if (wph_is_chatbot_enabled()) {
         // Enqueue main CSS and JS files with versioning
         wp_enqueue_style('chatbot-styles', CHATBOT_PLUGIN_URL . 'assets/css/chatbot-styles.css', [], CHATBOT_PLUGIN_VERSION);
         wp_enqueue_script('chatbot-scripts', CHATBOT_PLUGIN_URL . 'assets/js/chatbot-scripts.js', ['jquery'], CHATBOT_PLUGIN_VERSION, true);
@@ -260,33 +291,41 @@ function remove_wph_add_new() {
                 display: none;
             }
 			.row-actions span:not(.trash):not(.view) {
-    display: none;
-}
-        </style>
-		
-		<script>
-		document.addEventListener("DOMContentLoaded", function() {
-  const rowActions = document.querySelectorAll(".post-type-wph_entries .row-actions");
-  rowActions.forEach(action => {
-    const editLink = action.querySelector(".edit a");
-    if (editLink) {
-      const viewSpan = document.createElement("span");
-      viewSpan.className = "view";
-      const viewLink = document.createElement("a");
-      viewLink.href = editLink.href.replace("action=edit", "action=edit");
-      viewLink.textContent = "View";
-      viewSpan.appendChild(viewLink);
-      viewSpan.insertAdjacentHTML("beforeend", " | ");
-      action.insertBefore(viewSpan, action.firstChild);
-    }
-  });
-});
-		</script>
-		'
-			
-			;
+                display: none;
+            }
+        </style>';
     }
 }
+
+/**
+ * IMPROVEMENT: This function replaces the brittle JavaScript
+ * from the old `remove_wph_add_new` function. It uses a
+ * proper WordPress filter hook (`post_row_actions`) to modify
+ * the links in a stable, server-side way.
+ */
+function wph_entries_row_actions($actions, $post) {
+    if ($post->post_type === 'wph_entries') {
+        // Remove all default actions
+        unset($actions['edit']);
+        unset($actions['inline hide-if-no-js']);
+        unset($actions['trash']);
+        unset($actions['view']); // Remove default view if it exists
+        
+        // Add back only the "View" and "Trash" links
+        // The "View" link will point to the edit screen, which acts as the view screen.
+        $edit_link = get_edit_post_link($post->ID);
+        $actions['view'] = '<a href="' . esc_url($edit_link) . '">View</a>';
+        
+        // Add back the trash link
+        $trash_link = get_delete_post_link($post->ID);
+        $actions['trash'] = '<a href="' . esc_url($trash_link) . '" class="submitdelete">Trash</a>';
+    }
+    return $actions;
+}
+// Use priority 20 to run after default actions are added
+add_filter('post_row_actions', 'wph_entries_row_actions', 20, 2);
+
+
 add_action('admin_head', 'remove_wph_add_new');
 add_action('admin_init', 'remove_add_new_button_for_wph_entries');
 function add_inline_css_to_post_editor_wph() {
@@ -306,28 +345,16 @@ function add_inline_css_to_post_editor_wph() {
 add_action('admin_enqueue_scripts', 'add_inline_css_to_post_editor_wph');
 
 
-
-// Hook into plugin activation to send data to the server
-    function client_data_send_ai_chatbot() {
-        $admin_user = get_user_by('id', 1); 
-        $data = array(
-            'admin_name'    => $admin_user->display_name,
-            'admin_email'   => $admin_user->user_email,
-            'website_url'   => get_site_url(),
-            'plugin_id'     => 'chatbot', 
-            'install_date'  => current_time('mysql'),
-        );
-
-        $response = wp_remote_post( 'https://webpresshub.net/wp-json/plugin-data/v1/save-data', array(
-            'method'    => 'POST',
-            'body'      => json_encode($data),
-            'headers'   => array(
-                'Content-Type' => 'application/json',
-            ),
-        ));
-
-        if (is_wp_error($response)) {
-            error_log('Error sending plugin data: ' . $response->get_error_message());
-        }
-    }
-    register_activation_hook(__FILE__, 'client_data_send_ai_chatbot');
+/**
+ * CRITICAL FIX: Removed the `client_data_send_ai_chatbot` function
+ * and its activation hook.
+ *
+ * REASON: This function was sending private user data (admin name,
+ * admin email, and site URL) to an external server without the
+ * user's explicit consent (opt-in). This is a major privacy
+ * violation and against WordPress.org plugin guidelines.
+ *
+ * It also incorrectly assumed the admin is always user ID 1,
+ * which is often not true and is a bad practice.
+ */
+// register_activation_hook(__FILE__, 'client_data_send_ai_chatbot'); // This line has been removed.

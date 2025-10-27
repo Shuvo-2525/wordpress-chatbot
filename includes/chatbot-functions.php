@@ -25,7 +25,7 @@ Here are the basic information about our website:, ###" . $organization_info . "
   //  custom_error_log('API Request Body: ' . $body);
 
     // API request
-    $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . $api_key;
+    $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' . $api_key;
     $response = wp_remote_post($url, [
         'headers' => ['Content-Type' => 'application/json'],
         'body' => $body,
