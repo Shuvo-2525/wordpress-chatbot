@@ -484,7 +484,7 @@ function wph_chatbot_train_bot_page() {
         wph_chatbot_render_textarea_field(
             'wph_fallback_responses',
             'Fallback Responses',
-            'The message the bot sends when it doesn't understand a query.',
+            "The message the bot sends when it doesn't understand a query.",
             3
         );
     });
