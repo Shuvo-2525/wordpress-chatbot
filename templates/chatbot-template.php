@@ -111,15 +111,12 @@
 
 
 
-<div style="display: flex; place-content: center; font-size: 14px">
-  <a href="https://webpresshub.net/free-ai-chatbot/" style="color: rgb(79, 79, 79); font-size: 0.75em; font-weight: 400; text-decoration: none; padding: 0.5em;" target="_blank">
-	  Add a free <b>AI chatbot</b> to your website by
-    <img src="https://webpresshub.net/wp-content/uploads/2023/09/Webpress-Hub-4.png" style="margin: 0px 4px 0px 2px; display: inline-block; vertical-align: middle; width: 66px; float: right;">
-   
+<div style="display: flex; place-content: center; font-size: 14px; text-align: center; padding: 0.5em;">
+  <a href="https://shurikenit.com" style="color: rgb(79, 79, 79); font-size: 0.75em; font-weight: 400; text-decoration: none;" target="_blank">
+	  customised by <b>ShurikenIT</b>
   </a>
 </div>
 
-</div>
 </div>
 </div>
 </div>

@@ -435,6 +435,15 @@ async function lwhOpenCbotfetchBotConfiguration() {
         if (botResponse.ok) {
             botConfigData = await botResponse.json();
             console.log(botConfigData, "Data from api");
+
+            // NEW: Set the chatbot header title
+            if (botConfigData.headerTitle) {
+                const headerTitleEl = document.getElementById('wph_chatbot_header_title_display');
+                if (headerTitleEl) {
+                    headerTitleEl.textContent = botConfigData.headerTitle;
+                }
+            }
+
             chatMessagesContainer.style.fontSize = `${botConfigData.fontSize}px`;
             let startupBtns=''
             const startupBtnContainer = document.querySelector('.lwh-open-cbot .startup-btns');
@@ -496,3 +505,4 @@ function lwhOpenCbothandleStartupBtnClick(event){
 }
 
 lwhOpenCbotfetchBotConfiguration();
+
