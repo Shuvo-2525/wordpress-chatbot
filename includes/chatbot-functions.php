@@ -48,8 +48,7 @@ Here are the basic information about our website:, ###" . $organization_info . "
 	    // Save the updated conversation history to the database
         save_chat_history_to_db($lead_id, $chat_history);
     return ['success' => true, 'message' => 'Response generated', 'result' => $ai_response];
-}
-
+   }
 
     return ['success' => false, 'message' => 'Unexpected response format', 'result' => ''];
 }
