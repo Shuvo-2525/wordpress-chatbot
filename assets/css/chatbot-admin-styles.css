@@ -1,17 +1,42 @@
 /*
- * Shuriken AI Chatbot Admin Styles
+ * WPH Chatbot Admin Styles
  * This file styles the new Tailwind-based admin UI.
  */
 
-/* * UPDATED: Center the content
- * This removes the full-width style and applies a max-width 
- * to center the content in the admin area, as requested.
- */
+/* NEW: Hide default WordPress UI for our plugin pages */
+body.toplevel_page_wph-chatbot #wpcontent,
+body.wph-chatbot_page_wph-chatbot-train #wpcontent,
+body.wph-chatbot_page_wph-chatbot-settings #wpcontent,
+body.post-type-wph_entries #wpcontent {
+    padding-left: 0; /* Remove default padding */
+    margin-left: 0;   /* Remove default margin */
+}
+
+body.toplevel_page_wph-chatbot #adminmenumain,
+body.wph-chatbot_page_wph-chatbot-train #adminmenumain,
+body.wph-chatbot_page_wph-chatbot-settings #adminmenumain,
+body.post-type-wph_entries #adminmenumain {
+    display: none; /* Hide WP main menu */
+}
+
+body.toplevel_page_wph-chatbot #wpadminbar,
+body.wph-chatbot_page_wph-chatbot-train #wpadminbar,
+body.wph-chatbot_page_wph-chatbot-settings #wpadminbar,
+body.post-type-wph_entries #wpadminbar {
+    display: none; /* Hide WP admin bar */
+}
+
+body.toplevel_page_wph-chatbot #wpfooter,
+body.wph-chatbot_page_wph-chatbot-train #wpfooter,
+body.wph-chatbot_page_wph-chatbot-settings #wpfooter,
+body.post-type-wph_entries #wpfooter {
+    display: none; /* Hide WP footer */
+}
+
+/* NEW: Reset margin on our wrapper */
 .wph-chatbot-admin-wrap {
-    max-width: 1280px; /* Corresponds to max-w-7xl */
-    margin-left: 0;   /* Reset default WP admin margin */
-    margin-right: 20px; /* Standard WP admin margin */
-    padding-right: 0;
+    margin: 0;
+    max-width: none; /* Allow our layout to be full-width */
 }
 
 /* Hide the default WordPress form table layout */
@@ -58,4 +83,24 @@
 .wph-chatbot-admin-wrap header .submit {
     margin: 0;
     padding: 0;
+}
+
+/* NEW: Style the "Entries" list view */
+/* This wraps our new sidebar and the WP list table */
+body.post-type-wph_entries #wpbody-content {
+    display: flex;
+    background: #F8F9FA; /* bg-muted */
+}
+
+/* Hide default WP list page UI that we replace */
+body.post-type-wph_entries .wp-heading-inline,
+body.post-type-wph_entries .page-title-action {
+    display: none;
+}
+
+/* Style the WP list table to look like our content */
+body.post-type-wph_entries .wrap {
+    margin: 0;
+    flex: 1;
+    padding: 2.5rem; /* p-10 */
 }

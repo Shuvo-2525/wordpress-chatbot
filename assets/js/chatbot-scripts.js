@@ -1,1011 +1,508 @@
-// Ensure the script runs in strict mode
-'use strict';
+const apiUrl = chatbotConfig.apiUrl;
+const botConfigurationUrl = chatbotConfig.configUrl;
+const copyButtons = document.querySelectorAll('.lwh-open-cbot .copy-button');
+const button = document.querySelector('.lwh-open-cbot #submit-btn');
+let messageInput = document.querySelector('.lwh-open-cbot #message');
+let content = [];
+let botConfigData = '';
+let conversationTranscript = [];
+const chatbotImage = document.querySelector('.custom-chatbot__image');
+const lead_id = Math.floor(Math.random() * 900000000000) + 100000000000;
 
-// --- Configuration and State Variables ---
-const apiUrl = chatbotConfig.apiUrl; // API endpoint for chat messages
-const botConfigurationUrl = chatbotConfig.configUrl; // API endpoint for bot config
-let content = []; // Stores the conversation history for the API
-let botConfigData = null; // Stores the fetched bot configuration
-let leadCaptured = false; // Flag: true if user info has been submitted
-let isFetching = false; // Flag: true if an API call is in progress
-const lead_id = generateLeadId(); // Generate a unique ID for this session
-
-// --- DOM Element References (Declare in outer scope) ---
-let chatbotContainer, chatbotImage, customChatbotDiv, chatWindow, submitButton, messageInput;
-let leadCaptureFieldsDiv, nameInput, emailInput, phoneInput, formOuter, buttonDiv, msgInputGroup;
-let chatMessagesContainer, buttonStartDiv, inputWithMessageDiv, chatHeaderNameDiv, chatHeaderBackDiv;
-let leadHeaderDiv, loadingIndicator, popupElement, headerTitleElement, chatStatusElement;
-let messageForm, startButton;
-
-// Find the main container first
-chatbotContainer = document.querySelector('.lwh-open-cbot');
-
-if (!chatbotContainer) {
-    console.error("Chatbot container (.lwh-open-cbot) not found. Chatbot script will not run.");
-} else {
-    // --- Assign DOM Elements (inside the block) ---
-    // Assign values to the variables declared outside
-    chatbotImage = chatbotContainer.querySelector('.custom-chatbot__image');
-    customChatbotDiv = chatbotContainer.querySelector('.custom-chatbot');
-    chatWindow = chatbotContainer.querySelector('.chat');
-    submitButton = chatbotContainer.querySelector('#submit-btn');
-    messageInput = chatbotContainer.querySelector('#message');
-    leadCaptureFieldsDiv = chatbotContainer.querySelector('#leadCaptureFields');
-    nameInput = chatbotContainer.querySelector('#name');
-    emailInput = chatbotContainer.querySelector('#email');
-    phoneInput = chatbotContainer.querySelector('#phone');
-    formOuter = chatbotContainer.querySelector('#form-outer');
-    buttonDiv = chatbotContainer.querySelector('#button-div'); // Submit button container
-    msgInputGroup = chatbotContainer.querySelector('.form-group.msg-input');
-    chatMessagesContainer = chatbotContainer.querySelector('.chat__messages');
-    buttonStartDiv = chatbotContainer.querySelector('#button-start-div'); // Start convo button container
-    inputWithMessageDiv = chatbotContainer.querySelector('#input-with-message');
-    chatHeaderNameDiv = chatbotContainer.querySelector('#chat_header_name');
-    chatHeaderBackDiv = chatbotContainer.querySelector('#chat_header_back');
-    leadHeaderDiv = chatbotContainer.querySelector('.lead-header-container');
-    loadingIndicator = chatbotContainer.querySelector('.loading');
-    popupElement = chatbotContainer.querySelector('.popup');
-    headerTitleElement = chatbotContainer.querySelector('#wph_chatbot_header_title_display');
-    chatStatusElement = chatbotContainer.querySelector('.chat__status');
-    messageForm = chatbotContainer.querySelector('#messageForm');
-    startButton = chatbotContainer.querySelector('#start-btn'); // New conversation button
-
-    // --- Initialization ---
-    // Add event listeners only if elements exist
-    if (chatbotImage) {
-        chatbotImage.addEventListener('click', lwhOpenCbotToggleChat);
-    }
-    if (chatbotContainer.querySelector('.chat__close-icon')) {
-        chatbotContainer.querySelector('.chat__close-icon').addEventListener('click', lwhOpenCbotToggleChat);
-    }
-    if (chatHeaderBackDiv?.querySelector('button')) {
-        chatHeaderBackDiv.querySelector('button').addEventListener('click', closeLeadForm);
-    }
-    if (messageForm) {
-        messageForm.addEventListener('submit', (event) => lwhOpenCbotonFormSubmit(event));
-    }
-     if (startButton) {
-        startButton.addEventListener('click', displayLeadForm);
-     }
-
-    // Initialize UI based on lead capture status (check localStorage)
-    initializeUIState(); // Now safe to call as variables are in scope
-    lwhOpenCbotfetchBotConfiguration(); // Fetch config on load
-
-    // Autofill lead data if present in localStorage
-    autofillLeadData();
-
-    // Add input event listeners for floating labels (if inputs exist)
-    chatbotContainer.querySelectorAll('.wph-input').forEach((input) => {
-        input.addEventListener('input', handleFloatingLabel);
-        // Initial check in case of autofill
-        handleFloatingLabel.call(input);
-    });
-
-} // End of main execution block
-
-
-// --- Core Functions (Remain outside the 'else' block, but can now access the variables) ---
-
-/**
- * Toggles the visibility of the chatbot window and launcher icon.
- */
 function lwhOpenCbotToggleChat() {
-    // Check if essential elements were found
-    if (!chatbotImage || !customChatbotDiv || !chatWindow) {
-        console.error("Cannot toggle chat: Essential elements missing.");
-        return;
-    }
+  if (chatbotImage.style.display === "none" || chatbotImage.style.display === "") {
+        chatbotImage.style.display = "block"; // Show the element
+	  	customChatbot.style.display = 'none';
 
-    const isChatbotVisible = customChatbotDiv.style.display !== 'none';
-
-    if (isChatbotVisible) {
-        chatbotImage.style.display = 'block';
-        customChatbotDiv.style.display = 'none';
-        chatWindow.classList.remove('show');
-        customChatbotDiv.style.zIndex = '9998'; // Lower z-index when hidden
     } else {
-        chatbotImage.style.display = 'none';
-        customChatbotDiv.style.display = 'block';
-        // Use setTimeout to allow display:block before starting transition
-        setTimeout(() => {
-            chatWindow.classList.add('show');
-        }, 10); // Small delay
-        customChatbotDiv.style.zIndex = '9999'; // Higher z-index when visible
+        chatbotImage.style.display = "none"; // Hide the element
+			  	customChatbot.style.display = 'block';
+
+    }
+	const chatWindow = document.querySelector(".lwh-open-cbot .chat");
+    chatWindow.classList.toggle('show');
+    if(chatWindow.classList.contains('show')){
+        document.querySelector(".lwh-open-cbot .custom-chatbot").style.zIndex = '9999'
+    }
+    else{
+        document.querySelector(".lwh-open-cbot .custom-chatbot").style.zIndex = '9998'
     }
 }
+let leadCaptured = false; // Flag to check if the lead is captured
+const leadCaptureFields = document.getElementById('leadCaptureFields');
+const formOuter = document.getElementById('form-outer');
+const buttonDiv = document.getElementById('button-div');
+const msgInput = document.querySelector('.form-group.msg-input');
+const chatSec = document.querySelector('.lwh-open-cbot .chat__messages');
+const buttonStartDiv = document.getElementById('button-start-div');
+const inputWithMessage = document.getElementById('input-with-message');
+const chatHeaderName = document.getElementById('chat_header_name');
+const chatHeaderBack = document.getElementById('chat_header_back');
+const chatShowDiv = document.querySelector('.chat');
+const leadHeader = document.querySelector('.lead-header-container');
+const customChatbot = document.querySelector('.custom-chatbot');
 
-/**
- * Initializes the UI state based on whether lead data exists in localStorage.
- */
-function initializeUIState() {
-     const savedName = localStorage.getItem('lead_name');
-     const savedEmail = localStorage.getItem('lead_email');
-     const savedPhone = localStorage.getItem('lead_phone');
-
-     // Check if elements exist before manipulating them
-     if (savedName && savedEmail && savedPhone) {
-         leadCaptured = true;
-         // Hide lead fields, show message input and submit button
-         if (leadCaptureFieldsDiv) leadCaptureFieldsDiv.style.display = 'none';
-         if (buttonStartDiv) buttonStartDiv.style.display = 'none'; // Hide "New Conversation"
-         if (inputWithMessageDiv) inputWithMessageDiv.style.display = 'flex';
-         if (buttonDiv) buttonDiv.style.display = 'flex'; // Show Submit button container
-         if (formOuter) formOuter.classList.remove("form-outer"); // Adjust form styling
-         if (buttonDiv) buttonDiv.classList.remove("button-div"); // Adjust button styling
-         if (msgInputGroup) msgInputGroup.classList.add("msg-input-lead-filled");
-         if (chatShowDiv) {
-            chatShowDiv.classList.remove("lead-form-open");
-            chatShowDiv.classList.add("lead-form-submit");
-         }
-         if (chatHeaderNameDiv) chatHeaderNameDiv.style.display = "block";
-         if (chatHeaderBackDiv) chatHeaderBackDiv.style.display = "none";
-         if (leadHeaderDiv) leadHeaderDiv.style.display = "none";
-         if (chatMessagesContainer) chatMessagesContainer.style.display = "flex";
-     } else {
-         leadCaptured = false;
-         // Show "New Conversation" button, hide form initially
-         if (buttonDiv) buttonDiv.style.display = 'none'; // Hide Submit button container
-         if (inputWithMessageDiv) inputWithMessageDiv.style.display = 'none';
-         if (buttonStartDiv) buttonStartDiv.style.display = 'flex'; // Show "New Conversation"
-         if (chatHeaderNameDiv) chatHeaderNameDiv.style.display = "block"; // Show normal header
-         if (chatHeaderBackDiv) chatHeaderBackDiv.style.display = "none";
-         if (leadHeaderDiv) leadHeaderDiv.style.display = "none";
-         if (chatShowDiv) {
-             chatShowDiv.classList.remove("lead-form-open");
-             chatShowDiv.classList.remove("lead-form-submit");
-         }
-         if (chatMessagesContainer) chatMessagesContainer.style.display = "flex"; // Show messages container
-     }
+//Styling Condition
+ if (!leadCaptured) {
+	 		buttonDiv.style.display = 'none';
+		inputWithMessage.style.display = 'none';
 }
-
-
-/**
- * Shows the lead capture form fields.
- */
-function displayLeadForm() {
-    // Check if elements exist
-    if (!inputWithMessageDiv || !buttonDiv || !buttonStartDiv || !chatMessagesContainer || !chatHeaderNameDiv || !chatHeaderBackDiv || !chatShowDiv || !leadHeaderDiv) return;
-
-    inputWithMessageDiv.style.display = 'flex';
-    buttonDiv.style.display = 'flex'; // Show submit button container
-    buttonStartDiv.style.display = 'none'; // Hide "New Conversation" button
-    chatMessagesContainer.style.display = "none"; // Hide chat messages
-    chatHeaderNameDiv.style.display = "none"; // Hide normal header
-    chatHeaderBackDiv.style.display = "block"; // Show back button header
-    chatShowDiv.classList.add("lead-form-open");
-    chatShowDiv.classList.remove("lead-form-submit");
-    leadHeaderDiv.style.display = "block"; // Show colored header space
+function displayLeadForm(){
+	inputWithMessage.style.display = 'flex';
+	buttonDiv.style.display = 'flex';
+	buttonStartDiv.style.display = 'none';
+	chatSec.style.display = "none";
+	chatHeaderName.style.display = "none";
+	chatHeaderBack.style.display= "block";
+	chatShowDiv.classList.add("lead-form-open")
+	leadHeader.style.display= "block";
 }
+function closeLeadForm(){
+	inputWithMessage.style.display = 'none';
+	buttonDiv.style.display = 'none';
+	buttonStartDiv.style.display = 'flex';
+	chatSec.style.display = "flex";
+	chatHeaderName.style.display = "block";
+	chatHeaderBack.style.display= "none";
+		chatShowDiv.classList.remove("lead-form-open")
+		leadHeader.style.display= "none";
 
-/**
- * Hides the lead capture form and returns to the initial state or chat view.
- */
-function closeLeadForm() {
-    // Check if elements exist
-    if (!inputWithMessageDiv || !buttonDiv || !buttonStartDiv || !chatMessagesContainer || !chatHeaderNameDiv || !chatHeaderBackDiv || !chatShowDiv || !leadHeaderDiv) return;
 
-    inputWithMessageDiv.style.display = 'none'; // Hide form fields + message input
-    buttonDiv.style.display = 'none'; // Hide submit button container
-    buttonStartDiv.style.display = 'flex'; // Show "New Conversation" button
-    chatMessagesContainer.style.display = "flex"; // Show chat messages
-    chatHeaderNameDiv.style.display = "block"; // Show normal header
-    chatHeaderBackDiv.style.display = "none"; // Hide back button header
-    chatShowDiv.classList.remove("lead-form-open");
-    leadHeaderDiv.style.display = "none"; // Hide colored header space
 }
-
-/**
- * Autofills lead data from localStorage if available.
- */
+// Function to autofill data if it exists in localStorage
 function autofillLeadData() {
     const savedName = localStorage.getItem('lead_name');
     const savedEmail = localStorage.getItem('lead_email');
     const savedPhone = localStorage.getItem('lead_phone');
-
-    if (nameInput && savedName) nameInput.value = savedName;
-    if (emailInput && savedEmail) emailInput.value = savedEmail;
-    if (phoneInput && savedPhone) phoneInput.value = savedPhone;
-
-    // Trigger floating label check for autofilled fields
-    [nameInput, emailInput, phoneInput].forEach(input => {
-        if (input) handleFloatingLabel.call(input);
-    });
+    
+    if (savedName) document.getElementById('name').value = savedName;
+    if (savedEmail) document.getElementById('email').value = savedEmail;
+    if (savedPhone) document.getElementById('phone').value = savedPhone;
 }
 
-/**
- * Handles the floating label effect for input fields.
- * Should be called with `this` bound to the input element.
- */
-function handleFloatingLabel() {
-    if (this.value) {
-        this.classList.add('has-value');
-    } else {
-        this.classList.remove('has-value');
-    }
-}
 
-/**
- * Handles form submission for both lead capture and sending messages.
- * @param {Event} event - The form submission event.
- * @param {string} [userMessage] - An optional message (used by quick-reply buttons).
- */
-async function lwhOpenCbotonFormSubmit(event, userMessage) {
+
+// Call autofillLeadData when the page loads or when form is ready
+document.addEventListener("DOMContentLoaded", autofillLeadData);
+
+function lwhOpenCbotonFormSubmit(event, userMessage) {
     event.preventDefault();
-    if (isFetching || submitButton?.disabled) return; // Prevent multiple submissions
-
+    if (button.disabled) return;
     let message;
-
+    // Lead capture logic
     if (!leadCaptured) {
-        // --- Lead Capture Mode ---
-        if (!nameInput || !emailInput || !phoneInput || !messageInput) {
-             console.error("Lead capture input field(s) not found.");
-             alert('An error occurred. Please refresh the page.');
-             return;
-        }
 
-        const name = nameInput.value.trim();
-        const email = emailInput.value.trim();
-        const phone = phoneInput.value.trim();
-        const query = messageInput.value.trim(); // Initial message/query
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const query = document.getElementById('message').value.trim();
+        const ip_address = ''; 
         const current_page_url = window.location.href;
 
-        // --- Basic Frontend Validation ---
-        if (!name || !email || !phone || !query) {
-            // Use custom popup/modal instead of alert
-            showCustomAlert('Please fill in all required fields (Name, Email, Phone, Message).');
-            return;
-        }
-        // Basic email format check
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            showCustomAlert('Please enter a valid email address.');
-            return;
-        }
-         // Basic phone format check (allows digits, +, spaces, hyphens - adjust as needed)
-        if (!/^[+]?[\d\s-]{7,15}$/.test(phone)) {
-            showCustomAlert('Please enter a valid phone number.');
-            return;
+               // Validation rules
+        const isValidName = /^[a-zA-Z\s]+$/.test(name);
+        const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        const isValidPhone = /^[+]?[0-9]{7,15}$/.test(phone);
+
+        // Validate lead information
+        if (name === '' || email === '' || phone === '') {
+            alert('Please fill all fields.');
+            return; // Stop execution if fields are empty
         }
 
-        // Disable button while submitting
-        setSubmitButtonState(true, 'Sending...');
+        if (!isValidName) {
+            alert('Please enter a valid name (letters and spaces only).');
+            return; // Stop execution if name is invalid
+        }
 
+        if (!isValidEmail) {
+            alert('Please enter a valid email address.');
+            return; // Stop execution if email is invalid
+        }
+
+        if (!isValidPhone) {
+            alert('Please enter a valid phone number (digits only, with an optional "+" for country code).');
+            return; // Stop execution if phone number is invalid
+        }
+		
+ localStorage.setItem('lead_name', name);
+        localStorage.setItem('lead_email', email);
+        localStorage.setItem('lead_phone', phone);
+        // AJAX request to save the lead entry
         const leadData = {
             name: name,
             email: email,
             phone: phone,
             query: query,
-            // ip_address: ip_address, // IP should be handled server-side for accuracy
+            ip_address: ip_address,
             current_page_url: current_page_url,
-            lead_id: String(lead_id) // Ensure lead_id is a string
+			lead_id: lead_id
         };
-
-        try {
-            const response = await fetch('/wp-admin/admin-ajax.php?action=save_bot_entry', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    // Add nonce header if implementing nonce verification
-                    // 'X-WP-Nonce': chatbotConfig.ajaxNonce
-                },
-                body: JSON.stringify(leadData),
-            });
-
-            const data = await response.json();
-
+chatSec.style.display = "flex";
+				chatHeaderName.style.display = "block";
+				chatHeaderBack.style.display= "none";
+				buttonStartDiv.style.display = 'none';
+                leadCaptureFields.style.display = 'none';
+				leadHeader.style.display= "none";
+				formOuter.classList.remove("form-outer");
+				buttonDiv.classList.remove("button-div");
+				msgInput.classList.add("msg-input-lead-filled")
+				chatShowDiv.classList.remove("lead-form-open")
+		        chatShowDiv.classList.add("lead-form-submit")
+				startupBtnsDiv = document.querySelector(".startup-btns")
+                startupBtnsDiv.style.display = "flex";
+        fetch('/wp-admin/admin-ajax.php?action=save_bot_entry', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(leadData),
+        })
+		
+        .then(response => response.json())
+        .then(data => {
             if (data.success) {
                 console.log('Lead captured and saved successfully:', data);
+				
                 leadCaptured = true;
-                message = query; // Use the initial query as the first message
-
-                // Save lead info to localStorage
-                localStorage.setItem('lead_name', name);
-                localStorage.setItem('lead_email', email);
-                localStorage.setItem('lead_phone', phone);
-
-                // Update UI to chat mode
-                switchToChatMode();
-                messageInput.value = ''; // Clear input *after* sending
-
-                // Submit the initial message to the AI
-                submitMessageToAI(message);
-
+                message = query;
+                console.log('Message after lead capture:', message);
+	
+                submitMessage(message);
             } else {
-                console.error('Failed to save lead entry:', data.data?.message || 'Unknown server error.');
-                 showCustomAlert(`Error: ${data.data?.message || 'Could not save your information. Please try again.'}`);
-                setSubmitButtonState(false); // Re-enable button on failure
+                console.error('Failed to save lead entry:', data);
+                alert('An error occurred while saving your information. Please try again.');
             }
-        } catch (error) {
-            console.error('Error during AJAX lead save:', error);
-            showCustomAlert('An error occurred while saving your details. Please check your connection and try again.');
-            setSubmitButtonState(false); // Re-enable button on failure
-        }
+        })
+        .catch(error => {
+            console.error('Error during AJAX request:', error);
+            alert('An error occurred. Please check your network connection and try again.');
+        });
 
     } else {
-        // --- Chat Mode ---
-        message = userMessage !== undefined ? userMessage.trim() : messageInput?.value.trim();
-        if (message && messageInput) {
-            messageInput.value = ''; // Clear input immediately
-            submitMessageToAI(message);
-        } else if (!message) {
-            console.warn("Attempted to send empty message.");
-             // Optionally show a subtle feedback if user tries to send empty
-        }
+        message = userMessage !== undefined ? userMessage : document.getElementById('message').value.trim();
+        console.log('Message after lead already captured:', message);
+        submitMessage(message);
     }
 }
 
-/**
- * Updates the UI after successful lead capture.
- */
-function switchToChatMode() {
-    // Check if elements exist
-    if (!leadCaptureFieldsDiv || !formOuter || !buttonDiv || !msgInputGroup || !chatShowDiv || !chatHeaderNameDiv || !chatHeaderBackDiv || !leadHeaderDiv || !chatMessagesContainer || !buttonStartDiv) return;
-
-    leadCaptureFieldsDiv.style.display = 'none'; // Hide name, email, phone
-    buttonStartDiv.style.display = 'none'; // Ensure "New Conversation" is hidden
-    buttonDiv.style.display = 'flex'; // Ensure Submit button is visible
-    inputWithMessageDiv.style.display = 'flex'; // Ensure message input area is visible
-    formOuter.classList.remove("form-outer");
-    buttonDiv.classList.remove("button-div"); // Use standard button styling now
-    msgInputGroup.classList.add("msg-input-lead-filled");
-    chatShowDiv.classList.remove("lead-form-open");
-    chatShowDiv.classList.add("lead-form-submit");
-    chatHeaderNameDiv.style.display = "block"; // Show normal header
-    chatHeaderBackDiv.style.display = "none"; // Hide back button header
-    leadHeaderDiv.style.display = "none";
-    chatMessagesContainer.style.display = "flex"; // Ensure messages are visible
-
-    // Show startup buttons if configured and not already clicked
-    const startupBtnsDiv = chatbotContainer.querySelector(".startup-btns");
-    if (startupBtnsDiv && startupBtnsDiv.innerHTML.trim() !== '' && startupBtnsDiv.style.display !== 'flex') {
-         // Check if startup buttons should be shown only once per session
-         // Example: if (!sessionStorage.getItem('startupButtonsShown')) {
-              startupBtnsDiv.style.display = "flex";
-         //    sessionStorage.setItem('startupButtonsShown', 'true');
-         // }
+function submitMessage(message) {
+    // Check if the message is valid
+    if (!message || message.trim() === '') {
+        console.warn("Message is empty, null, or undefined:", message);
+        return; // Stop execution if the message is not valid
     }
-    // Set focus to the message input
-    messageInput?.focus();
-}
 
+    console.log("Message being sent to API:", message);
 
-/**
- * Submits a validated user message to the AI.
- * @param {string} message - The user's message.
- */
-function submitMessageToAI(message) {
-    if (isFetching || !message) return;
+    // Prepare content and transcript for submission
+    content.push({
+        role: 'user',
+        parts: {
+            text: message
+        },
+    });
 
-    // Add user message to history and transcript
-    content.push({ role: 'user', parts: { text: message } });
-    conversationTranscript.push({ sender: 'user', time: new Date().toLocaleString(), parts: { text: message } });
+    let timestamp = new Date().toLocaleString();
+    conversationTranscript.push({
+        sender: 'user',
+        time: timestamp,
+        parts: {
+            text: message
+        },
+    });
+    
+    data = "";
 
-    // Display user message in UI
     lwhOpenCbotaddMessage('user', message);
-
-    // Show typing indicator and fetch AI response
+    document.getElementById('message').value = ''; // Clear message input
     lwhOpenCbotaddTypingAnimation('ai');
     lwhOpenCbotfetchData();
 }
 
-/**
- * Adds a message bubble to the chat interface.
- * @param {string} sender - 'user' or 'ai'.
- * @param {string} message - The message text (can contain basic HTML).
- */
 function lwhOpenCbotaddMessage(sender, message) {
-    // Check if elements exist
-    if (!chatMessagesContainer || !botConfigData) return;
-
-    const messageContainer = document.createElement('div');
-    messageContainer.classList.add(`chat__messages__${sender}`);
-
-    const messageDiv = document.createElement('div'); // Wrapper for avatar + bubble
-
-    // Sanitize message slightly on frontend (server should do main sanitization)
-    // Basic link handling example (more robust parsing might be needed)
-    const sanitizedMessage = message.replace(/<a href='(.*?)'>(.*?)<\/a>/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$2</a>');
-
-
-    let avatarHtml = '';
-    if (sender === 'ai') {
-        avatarHtml = `
-            <div>
-                <img width="30" height="30" class="bot-image"
-                    src="${botConfigData.botImageURL}" alt="Bot Avatar">
-            </div>`;
-    } else { // sender === 'user'
-        avatarHtml = `
-            <div>
-                <img width="30" height="30" class="avatar-image"
-                    src="${botConfigData.userAvatarURL}" alt="User Avatar">
-            </div>`;
-    }
-
-    // Note: Using innerHTML requires careful sanitization server-side.
+    let chatMessagesContainer = document.querySelector('.lwh-open-cbot .chat__messages');
+    let messageContainer = document.createElement('div');
+    messageContainer.classList.add('chat__messages__' + sender);
+    let messageDiv = document.createElement('div');
     messageDiv.innerHTML = `
-        ${sender === 'ai' ? avatarHtml : ''}
-        <p>${sanitizedMessage}</p>
-        ${sender === 'user' ? avatarHtml : ''}
-    `;
-
+            ${sender === 'ai' ?
+            `
+                <div>
+                <img width="30px" class="bot-image"
+                    src="${botConfigData.botImageURL}"
+                    alt="bot-image">
+                </div>
+                `
+            : ""
+        }
+            <p>${message}
+             </p>
+            ${sender === 'user' ?
+            `
+                <div>
+                <img width="30px" class="avatar-image"
+                    src="${botConfigData.userAvatarURL}"
+                    alt="avatar">
+                </div>
+                `
+            : ""
+        }
+        `;
     messageContainer.appendChild(messageDiv);
     chatMessagesContainer.appendChild(messageContainer);
-
-    // Add copy button to AI messages after adding to DOM
-    if (sender === 'ai') {
-        const paragraph = messageDiv.querySelector('p');
-        if (paragraph) {
-             // Add copy button only if message isn't just whitespace
-            if (paragraph.textContent.trim()) {
-                paragraph.insertAdjacentHTML('beforeend', `
-                    <span title="Copy" class="copy-text" onclick="lwhOpenCbotcopyText(event)">
-                        <i class="fa-regular fa-copy"></i>
-                        <span class="copy-tooltip">Copied</span>
-                    </span>`);
-            }
-        }
-    }
-
-
-    // Scroll to the bottom
     chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
 }
 
-/**
- * Adds a typing indicator for the AI.
- */
-function lwhOpenCbotaddTypingAnimation() {
-     // Check if elements exist
-     if (!chatMessagesContainer || !botConfigData) return;
-
-    // Remove any existing typing indicator first
-    lwhOpenCbotremoveTypingAnimation();
-
-    const typingContainer = document.createElement('div');
-    typingContainer.classList.add('chat__messages__ai', 'typing-indicator'); // Add class for easy removal
-
-    const typingAnimationDiv = document.createElement('div');
+function lwhOpenCbotaddTypingAnimation(sender) {
+    let chatMessagesContainer = document.querySelector('.lwh-open-cbot .chat__messages');
+    let typingContainer = document.createElement('div');
+    typingContainer.classList.add('chat__messages__' + sender);
+    let typingAnimationDiv = document.createElement('div');
+    typingAnimationDiv.classList.add('typing-animation');
     typingAnimationDiv.innerHTML = `
         <div>
-            <img width="30" height="30" class="bot-image"
-                src="${botConfigData.botImageURL}" alt="Bot Typing">
+        <img width="30px" class="bot-image"
+            src="${botConfigData.botImageURL}"
+            alt="">
         </div>
-        <p class="typing-dots">
-            <svg height="16" width="40" style="max-height: 20px;">
-                <circle class="dot" cx="10" cy="8" r="3" />
-                <circle class="dot" cx="20" cy="8" r="3" />
-                <circle class="dot" cx="30" cy="8" r="3" />
-            </svg>
-        </p>
-    `;
-
+  <p>
+  <svg height="16" width="40" style="max-height: 20px;">
+    <circle class="dot" cx="10" cy="8" r="3" style="fill:grey;" />
+    <circle class="dot" cx="20" cy="8" r="3" style="fill:grey;" />
+    <circle class="dot" cx="30" cy="8" r="3" style="fill:grey;" />
+  </svg>
+</p>
+  `;
     typingContainer.appendChild(typingAnimationDiv);
     chatMessagesContainer.appendChild(typingContainer);
     chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
 }
 
-/**
- * Removes the AI typing indicator.
- */
-function lwhOpenCbotremoveTypingAnimation() {
-    // Check if container exists
-    if (!chatbotContainer) return;
-    chatbotContainer.querySelectorAll('.typing-indicator').forEach(el => el.remove());
+function lwhOpenCbotreplaceTypingAnimationWithMessage(sender, message) {
+    let chatMessagesContainer = document.querySelector('.lwh-open-cbot .chat__messages');
+    let typingContainer = document.querySelector('.lwh-open-cbot .chat__messages__' + sender + ':last-child');
+    if (typingContainer) {
+        let messageContainer = document.createElement('div');
+        messageContainer.classList.add('chat__messages__' + sender);
+        messageContainer.classList.add('chat_messages_ai');
+        let messageDiv = document.createElement('div');
+        messageDiv.innerHTML = `
+                ${sender === 'ai' ?
+                `
+                    <div>
+                    <img width="30px" class="bot-image"
+                        src="${botConfigData.botImageURL}"
+                        alt="bot-image">
+                    </div>
+                    `
+                : ""
+            }
+                <p class="typing-effect"></p>
+                ${sender === 'user' ?
+                `
+                    <div>
+                    <img width="30px" class="avatar-image"
+                        src="${botConfigData.userAvatarURL}"
+                        alt="avatar">
+                    </div>
+                    `
+                : ""
+            }
+            `;
+        messageContainer.appendChild(messageDiv);
+        typingContainer.parentNode.replaceChild(messageContainer, typingContainer);
+        const typingEffectElement = messageDiv.querySelector(".typing-effect");
+        let index = 0;
+        const typingInterval = setInterval(() => {
+            typingEffectElement.textContent += message[index];
+            index++;
+            if (index === message.length) {
+                clearInterval(typingInterval);
+                typingEffectElement.insertAdjacentHTML('beforeend', `<span title="copy" class="copy-text" onclick="lwhOpenCbotcopyText(event)"><i class="fa-regular fa-copy"></i><span>copied</span></span>`);
+                chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+            }
+        }, 5);
+        chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    }
 }
 
+function lwhOpenCbotremoveTypingAnimation() {
+    let typingAnimationDivs = document.querySelectorAll('.lwh-open-cbot .typing-animation');
+    typingAnimationDivs.forEach(function (typingAnimationDiv) {
+        let chatMessagesAiDiv = typingAnimationDiv.closest('.chat__messages__ai');
+        if (chatMessagesAiDiv) {
+            chatMessagesAiDiv.parentNode.removeChild(chatMessagesAiDiv);
+        }
+    });
+}
 
-/**
- * Copies the text content of an AI message bubble to the clipboard.
- * @param {Event} event - The click event from the copy icon.
- */
+copyButtons.forEach(button => {
+    button.addEventListener('click', function (event) {
+        const codeElement = this.parentNode.nextElementSibling.querySelector('code');
+        const codeText = codeElement.textContent;
+        navigator.clipboard.writeText(codeText).then(function () {
+            event.target.innerText = "Copied";
+            setTimeout(() => {
+                event.target.innerText = "Copy";
+            }, 2000);
+        }).catch(function (error) {
+            console.error('Error copying code: ', error);
+        });
+    });
+});
+
 function lwhOpenCbotcopyText(event) {
-    const copyButtonSpan = event.currentTarget; // The span containing the icon
-    const paragraph = copyButtonSpan.closest('p');
-    if (!paragraph) return;
-
-    // Clone the paragraph to manipulate without affecting the original
+    const paragraph = event.target.closest('p');
     const clone = paragraph.cloneNode(true);
-    // Remove the copy button span itself from the clone
-    clone.querySelectorAll('.copy-text').forEach(elem => elem.remove());
+    clone.querySelectorAll('.copy-text').forEach(elem => {
+        elem.parentNode.removeChild(elem);
+    });
     const textToCopy = clone.textContent.trim();
-
     navigator.clipboard.writeText(textToCopy)
         .then(() => {
-            // Show feedback (e.g., change icon, show tooltip)
-            const tooltip = copyButtonSpan.querySelector('.copy-tooltip');
-            if (tooltip) {
-                 tooltip.style.display = 'inline'; // Or add a 'show' class
-                 setTimeout(() => {
-                     tooltip.style.display = 'none'; // Or remove the 'show' class
-                 }, 1500);
-            }
-             // Optionally change icon briefly
-             const icon = copyButtonSpan.querySelector('i');
-             if(icon) {
-                 const originalClass = icon.className;
-                 icon.className = 'fa-solid fa-check'; // Change to checkmark
-                 setTimeout(() => { icon.className = originalClass; }, 1500);
-             }
+            const copiedSpan = event.target.nextElementSibling;
+            copiedSpan.style.display = 'block';
+            setTimeout(() => {
+                copiedSpan.style.display = 'none';
+            }, 2000);
         })
         .catch(error => {
             console.error('Error copying text: ', error);
-            // Optionally show an error message to the user
-            showCustomAlert('Could not copy text.');
         });
 }
 
-/**
- * Fetches the AI response from the backend API.
- */
 async function lwhOpenCbotfetchData() {
-    // Check if button exists
-    if (isFetching || !submitButton) return;
-
-    setSubmitButtonState(true); // Disable button during fetch
-    isFetching = true;
-
+    button.disabled = true;
     try {
-        const response = await fetch(apiUrl, {
+        response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-                // Add nonce header if needed
             },
-            body: JSON.stringify({
-                // Send only the last user prompt and history *up to that point*
-                last_prompt: content[content.length - 1]?.parts?.text, // Safely access last prompt
-                conversation_history: content.slice(0, -1), // Send history *before* the last user message
-                lead_id: String(lead_id) // Ensure lead_id is string
-            })
+         body: JSON.stringify({
+    last_prompt: content[content.length - 1].parts.text,
+    conversation_history: content,
+			 lead_id: lead_id
+})
         });
 
-        // Remove typing indicator *before* processing response
-        lwhOpenCbotremoveTypingAnimation();
+        const data = await response.json();
+console.log(data);
 
-        // Check if response is ok (status code 200-299)
-        if (!response.ok) {
-             // Try to parse error details from JSON response
-            let errorData;
-            try {
-                errorData = await response.json();
-            } catch (e) {
-                // If response is not JSON
-                errorData = { message: `HTTP error ${response.status}`, result: 'Sorry, there was a server communication error.' };
-            }
-             console.error('API Error:', response.status, errorData);
-             const errorMessage = errorData?.result || errorData?.message || 'An unknown API error occurred.';
-             lwhOpenCbotaddMessage('ai', errorMessage); // Display error message in chat
-             content.push({ role: 'model', parts: { text: errorMessage } }); // Add error to history
+        if (data.success) {
+            lwhOpenCbotremoveTypingAnimation(); // Remove the typing animation
+            lwhOpenCbotaddMessage('ai', data.result);
+			    content.push({
+                role: 'model',
+                parts: {
+                    text: data.result  // Add the bot response to the history
+                }
+            });
         } else {
-            // Process successful response
-            const data = await response.json();
-            console.log("API Response Data:", data);
-
-            if (data.success && data.result) {
-                lwhOpenCbotaddMessage('ai', data.result);
-                content.push({ role: 'model', parts: { text: data.result } }); // Add bot response to history
-            } else {
-                 // Handle cases where success is true but result is missing, or success is false
-                const errorMessage = data.result || data.message || "Sorry, I couldn't generate a response.";
-                console.error('API Error (Success False or Missing Result):', data);
-                lwhOpenCbotaddMessage('ai', errorMessage);
-                content.push({ role: 'model', parts: { text: errorMessage } }); // Add error/fallback to history
-            }
+    console.error('Error:', data.message);
+			     lwhOpenCbotremoveTypingAnimation(); // Remove the typing animation
+            lwhOpenCbotaddMessage('ai', data.result);
+			    content.push({
+                role: 'model',
+                parts: {
+                    text: "Techincal Issue, Please Try again"  // Add the bot response to the history
+                }
+            });
         }
     } catch (error) {
-        console.error('Fetch operation failed:', error);
-        lwhOpenCbotremoveTypingAnimation(); // Ensure typing indicator is removed on network error
-        const networkErrorMsg = 'Sorry, I couldn\'t connect to the server. Please check your internet connection.';
-        lwhOpenCbotaddMessage('ai', networkErrorMsg);
-        content.push({ role: 'model', parts: { text: networkErrorMsg } });
+        console.error('Fetch error:', error);
     } finally {
-        isFetching = false;
-        setSubmitButtonState(false); // Re-enable button
-         // Ensure focus returns to input if it exists
-        messageInput?.focus();
+        button.disabled = false;
     }
 }
+function insertButtonText(buttonText) {
+    const inputField = document.querySelector(".msg-input #message");
+    inputField.value = "";
+    inputField.value = buttonText;
+}
 
-/**
- * Fetches the initial chatbot configuration from the backend.
- */
 async function lwhOpenCbotfetchBotConfiguration() {
-    // Check if elements exist
-    if (!loadingIndicator || !chatMessagesContainer) return;
-
-    showLoading(true);
-    chatMessagesContainer.innerHTML = ''; // Clear previous messages
-    content = []; // Reset conversation history
-
+    const chatMessagesContainer = document.querySelector(".lwh-open-cbot .chat__messages");
+    document.querySelector(".lwh-open-cbot .loading").style.display = 'flex';
+    chatMessagesContainer.innerHTML = '';
+    let startupBtnsDiv = document.createElement('div');
+    startupBtnsDiv.classList.add('startup-btns');
+    chatMessagesContainer.after(startupBtnsDiv);
+    let botResponse = ''
     try {
-        const response = await fetch(botConfigurationUrl);
+        botResponse = await fetch(botConfigurationUrl);
+        if (botResponse.ok) {
+            botConfigData = await botResponse.json();
+            console.log(botConfigData, "Data from api");
 
-        if (!response.ok) {
-             throw new Error(`HTTP error ${response.status}`);
-        }
+            // NEW: Set the chatbot header title
+            if (botConfigData.headerTitle) {
+                const headerTitleEl = document.getElementById('wph_chatbot_header_title_display');
+                if (headerTitleEl) {
+                    headerTitleEl.textContent = botConfigData.headerTitle;
+                }
+            }
 
-        botConfigData = await response.json();
-        console.log("Bot Config Loaded:", botConfigData);
+            chatMessagesContainer.style.fontSize = `${botConfigData.fontSize}px`;
+            let startupBtns=''
+            const startupBtnContainer = document.querySelector('.lwh-open-cbot .startup-btns');
+            botConfigData.commonButtons.forEach(btn => {
+             startupBtns += `<p onclick="lwhOpenCbotonFormSubmit(event, '${btn.buttonPrompt}'); lwhOpenCbothandleStartupBtnClick(event);">${btn.buttonText}</p>`;
+//            startupBtns += `<p onclick="insertButtonText('${btn.buttonText}');">${btn.buttonText}</p>`;
 
-        // Update UI elements based on config
-        updateChatbotUI(botConfigData);
-
-        // Add initial welcome message
-        if (botConfigData.StartUpMessage) {
+            });            
+            startupBtnContainer.innerHTML = startupBtns;
+            if (botConfigData.botStatus == 1) {
+                document.querySelector(".lwh-open-cbot .chat__status").innerHTML = `<span></span> Online`;
+                document.querySelector(".lwh-open-cbot .chat__status").querySelector("span").style.background = "#68D391";
+            }
+			if (botConfigData.botStatus == 0) {
+                document.querySelector("#submit-btn").disabled = true;
+			}
+           
+            document.querySelector(".lwh-open-cbot .loading").style.display = 'none';
             lwhOpenCbotaddMessage('ai', botConfigData.StartUpMessage);
-            content.push({ role: 'model', parts: { text: botConfigData.StartUpMessage } });
+            content.push({
+                role: 'model',
+                parts: {
+text: botConfigData.StartUpMessage,
+            }});
+          
+        } else {
+            document.querySelector(".lwh-open-cbot .loading").style.display = 'none';
+            lwhOpenCbotshowPopup('Oops! Something went wrong!', '#991a1a');
+            throw new Error("Request failed. Please try again!");
         }
-
-        // Add startup buttons if not in lead capture mode
-        if (!leadCaptured) {
-            renderStartupButtons(botConfigData.commonButtons);
-        }
-
-
     } catch (error) {
-        console.error('Failed to fetch bot configuration:', error);
-        showCustomAlert('Oops! Could not load chatbot configuration.', '#991a1a');
-        if(chatStatusElement) {
-            chatStatusElement.innerHTML = `<span></span> Error`;
-             const span = chatStatusElement.querySelector('span'); // Find span after setting innerHTML
-             if (span) span.style.background = '#ff0000';
-        }
-        // Disable input if config fails
-        setSubmitButtonState(true);
-        if (messageInput) messageInput.disabled = true;
-
-    } finally {
-        showLoading(false);
+        lwhOpenCbotshowPopup('Oops! Something went wrong!', '#991a1a');
+        button.disabled = true
+        console.error('There was a problem with the fetch operation:', error);
+        return;
     }
 }
 
-/**
- * Updates various UI elements based on the fetched configuration.
- * @param {object} config - The bot configuration data.
- */
-function updateChatbotUI(config) {
-    if (!config) return;
-
-    if (headerTitleElement && config.headerTitle) {
-        headerTitleElement.textContent = config.headerTitle;
-    }
-
-    if (chatMessagesContainer && config.fontSize) {
-        // Ensure font size is applied safely
-        const size = parseInt(config.fontSize, 10);
-        if (!isNaN(size) && size > 8 && size < 30) { // Basic sanity check
-            chatMessagesContainer.style.fontSize = `${size}px`;
-        }
-    }
-
-    if (chatStatusElement) {
-        if (config.botStatus == 1) {
-            chatStatusElement.innerHTML = `<span></span> Online`;
-            const span = chatStatusElement.querySelector('span');
-            if (span) span.style.background = "#68D391";
-             // Enable input if disabled
-             setSubmitButtonState(false);
-             if (messageInput) messageInput.disabled = false;
-        } else { // Offline or error state
-            chatStatusElement.innerHTML = `<span></span> Offline`;
-             const span = chatStatusElement.querySelector('span');
-            if (span) span.style.background = "#acacac";
-            // Disable input
-            setSubmitButtonState(true, 'Bot Offline');
-            if (messageInput) messageInput.disabled = true;
-        }
-    } else {
-         // Disable input if status element doesn't exist
-         setSubmitButtonState(true);
-         if (messageInput) messageInput.disabled = true;
-    }
-}
-
-/**
- * Renders the initial quick-reply buttons.
- * @param {Array} buttons - Array of button objects from config.
- */
-function renderStartupButtons(buttons) {
-    let startupBtnsDiv = chatbotContainer?.querySelector(".startup-btns"); // Use optional chaining
-    if (!startupBtnsDiv) {
-         // Create the container if it doesn't exist and container exists
-         if (!chatbotContainer) return; // Exit if main container not found
-         startupBtnsDiv = document.createElement('div');
-         startupBtnsDiv.classList.add('startup-btns');
-         chatMessagesContainer?.after(startupBtnsDiv); // Place after messages
-    }
-
-    if (buttons && buttons.length > 0) {
-        let startupBtnsHtml = buttons.map(btn =>
-             // Ensure prompt exists before using escapeHtml
-            `<p data-prompt="${escapeHtml(btn.buttonPrompt || '')}">${escapeHtml(btn.buttonText || '')}</p>`
-        ).join('');
-        startupBtnsDiv.innerHTML = startupBtnsHtml;
-
-         // Add event listener using event delegation
-         startupBtnsDiv.addEventListener('click', handleStartupButtonClick);
-
-         // Show only if not captured lead and has buttons
-         if(!leadCaptured) {
-             startupBtnsDiv.style.display = 'flex';
-         } else {
-             startupBtnsDiv.style.display = 'none';
-         }
-
-    } else {
-        startupBtnsDiv.innerHTML = ''; // Clear if no buttons
-        startupBtnsDiv.style.display = 'none';
-    }
-}
-
-/**
- * Handles clicks on startup buttons using event delegation.
- * @param {Event} event
- */
-function handleStartupButtonClick(event) {
-     if (event.target.tagName === 'P') {
-        const prompt = event.target.dataset.prompt;
-        if (prompt) {
-            // Simulate form submission with the button's prompt
-            lwhOpenCbotonFormSubmit(new Event('submit'), prompt); // Pass a dummy event object
-            // Hide the buttons after one is clicked
-            const startupBtnContainer = event.currentTarget; // The container div
-             if (startupBtnContainer) {
-                 startupBtnContainer.style.display = 'none';
-                 // Optionally remove listener if only one click is allowed
-                 // startupBtnContainer.removeEventListener('click', handleStartupButtonClick);
-             }
-        }
-     }
+function lwhOpenCbotshowPopup(val, color) {
+    button.disabled = false;
+    const popup = document.querySelector('.lwh-open-cbot .popup');
+    popup.style.display = 'block';
+    popup.style.opacity = 1;
+    const innerPopup = popup.querySelector('p');
+    innerPopup.innerText = val;
+    innerPopup.style.color = color;
+    popup.classList.add('popup-animation');
+    setTimeout(() => {
+        popup.classList.remove('popup-animation');
+        popup.style.display = 'none';
+        popup.style.opacity = 0;
+    }, 3000);
 }
 
 
-// --- Utility Functions ---
-
-/**
- * Generates a unique numeric string ID for the lead session.
- * @returns {string}
- */
-function generateLeadId() {
-    // Simple approach: timestamp + random number (adjust length/complexity as needed)
-    return Date.now().toString() + Math.floor(Math.random() * 10000);
+function lwhOpenCbothandleStartupBtnClick(event){
+    const startupBtnContainer = event.target.parentNode;
+    startupBtnContainer.style.display = 'none';
 }
 
-/**
- * Shows or hides the loading indicator.
- * @param {boolean} show - True to show, false to hide.
- */
-function showLoading(show) {
-    if (loadingIndicator) {
-        loadingIndicator.style.display = show ? 'flex' : 'none';
-    }
-}
-
-/**
- * Displays a custom popup/alert message.
- * @param {string} message - The message to display.
- * @param {string} [color='#333'] - Optional text color.
- */
-function showCustomAlert(message, color = '#333') {
-    // Replace this with your preferred modal/popup implementation
-    // For now, using the existing popup element
-    if (popupElement) {
-        const innerPopup = popupElement.querySelector('p');
-        if(innerPopup) {
-            innerPopup.textContent = message;
-            innerPopup.style.color = color;
-        }
-        popupElement.style.display = 'block';
-        popupElement.style.opacity = 1; // Ensure visible
-        popupElement.classList.add('popup-animation'); // Start animation
-
-        // Auto-hide after a delay
-        setTimeout(() => {
-             if (popupElement) {
-                popupElement.classList.remove('popup-animation');
-                // Allow animation to finish before hiding
-                 setTimeout(() => {
-                      if (popupElement) {
-                         popupElement.style.display = 'none';
-                         popupElement.style.opacity = 0;
-                      }
-                 }, 500); // Match animation duration if possible
-             }
-        }, 3500); // Slightly longer display time
-    } else {
-         // Fallback to standard alert if popup element isn't found
-         console.warn("Popup element not found, falling back to alert:", message);
-         alert(message);
-    }
-}
-
-
-/**
- * Sets the disabled state and text of the submit button.
- * @param {boolean} disabled - True to disable, false to enable.
- * @param {string} [text=''] - Optional text to display while disabled (e.g., 'Sending...').
- */
-function setSubmitButtonState(disabled, text = '') {
-    // Check if button exists
-    if (!submitButton) return;
-    submitButton.disabled = disabled;
-    const icon = submitButton.querySelector('i');
-    const span = submitButton.querySelector('span');
-
-    if (disabled) {
-        if (icon) icon.style.display = 'none'; // Hide icon
-        if (span) {
-             span.textContent = text || 'Sending...'; // Default disabled text
-             span.style.display = 'inline'; // Show text
-        }
-    } else {
-         // Restore normal state (Icon visible, text hidden for send button)
-         if (icon) icon.style.display = 'inline'; // Show icon
-         if (span) span.style.display = 'none'; // Hide text
-    }
-}
-
-/**
- * Simple HTML escaping function.
- * @param {string} str - String to escape.
- * Renders the initial quick-reply buttons.
- * @param {Array} buttons - Array of button objects from config.
- */
-function renderStartupButtons(buttons) {
-    let startupBtnsDiv = chatbotContainer?.querySelector(".startup-btns"); // Use optional chaining
-    if (!startupBtnsDiv) {
-         // Create the container if it doesn't exist and container exists
-         if (!chatbotContainer) return; // Exit if main container not found
-         startupBtnsDiv = document.createElement('div');
-         startupBtnsDiv.classList.add('startup-btns');
-         chatMessagesContainer?.after(startupBtnsDiv); // Place after messages
-    }
-
-    if (buttons && buttons.length > 0) {
-        let startupBtnsHtml = buttons.map(btn =>
-             // Ensure prompt exists before using escapeHtml
-            `<p data-prompt="${escapeHtml(btn.buttonPrompt || '')}">${escapeHtml(btn.buttonText || '')}</p>`
-        ).join('');
-        startupBtnsDiv.innerHTML = startupBtnsHtml;
-
-         // Add event listener using event delegation
-         startupBtnsDiv.addEventListener('click', handleStartupButtonClick);
-
-         // Show only if not captured lead and has buttons
-         if(!leadCaptured) {
-             startupBtnsDiv.style.display = 'flex';
-         } else {
-             startupBtnsDiv.style.display = 'none';
-         }
-
-    } else {
-        startupBtnsDiv.innerHTML = ''; // Clear if no buttons
-        startupBtnsDiv.style.display = 'none';
-    }
-}
-
-/**
- * Handles clicks on startup buttons using event delegation.
- * @param {Event} event
- */
-function handleStartupButtonClick(event) {
-     if (event.target.tagName === 'P') {
-        const prompt = event.target.dataset.prompt;
-        if (prompt) {
-            // Simulate form submission with the button's prompt
-            lwhOpenCbotonFormSubmit(new Event('submit'), prompt); // Pass a dummy event object
-            // Hide the buttons after one is clicked
-            const startupBtnContainer = event.currentTarget; // The container div
-             if (startupBtnContainer) {
-                 startupBtnContainer.style.display = 'none';
-                 // Optionally remove listener if only one click is allowed
-                 // startupBtnContainer.removeEventListener('click', handleStartupButtonClick);
-             }
-        }
-     }
-}
-
-
-// --- Utility Functions ---
-
-/**
- * Generates a unique numeric string ID for the lead session.
- * @returns {string}
- */
-function generateLeadId() {
-    // Simple approach: timestamp + random number (adjust length/complexity as needed)
-    return Date.now().toString() + Math.floor(Math.random() * 10000);
-}
-
-/**
- * Shows or hides the loading indicator.
- * @param {boolean} show - True to show, false to hide.
- */
-function showLoading(show) {
-    if (loadingIndicator) {
-        loadingIndicator.style.display = show ? 'flex' : 'none';
-    }
-}
-
-/**
- * Displays a custom popup/alert message.
- * @param {string} message - The message to display.
- * @param {string} [color='#333'] - Optional text color.
- */
-function showCustomAlert(message, color = '#333') {
-    // Replace this with your preferred modal/popup implementation
-    // For now, using the existing popup element
-    if (popupElement) {
-        const innerPopup = popupElement.querySelector('p');
-        if(innerPopup) {
-            innerPopup.textContent = message;
-            innerPopup.style.color = color;
-        }
-        popupElement.style.display = 'block';
-        popupElement.style.opacity = 1; // Ensure visible
-        popupElement.classList.add('popup-animation'); // Start animation
-
-        // Auto-hide after a delay
-        setTimeout(() => {
-             if (popupElement) {
-                popupElement.classList.remove('popup-animation');
-                // Allow animation to finish before hiding
-                 setTimeout(() => {
-                      if (popupElement) {
-                         popupElement.style.display = 'none';
-                         popupElement.style.opacity = 0;
-                      }
-                 }, 500); // Match animation duration if possible
-             }
-        }, 3500); // Slightly longer display time
-    } else {
-         // Fallback to standard alert if popup element isn't found
-         console.warn("Popup element not found, falling back to alert:", message);
-         alert(message);
-    }
-}
-
-
-/**
- * Sets the disabled state and text of the submit button.
- * @param {boolean} disabled - True to disable, false to enable.
- * @param {string} [text=''] - Optional text to display while disabled (e.g., 'Sending...').
- */
-function setSubmitButtonState(disabled, text = '') {
-    // Check if button exists
-    if (!submitButton) return;
-    submitButton.disabled = disabled;
-    const icon = submitButton.querySelector('i');
-    const span = submitButton.querySelector('span');
-
-    if (disabled) {
-        if (icon) icon.style.display = 'none'; // Hide icon
-        if (span) {
-             span.textContent = text || 'Sending...'; // Default disabled text
-             span.style.display = 'inline'; // Show text
-        }
-    } else {
-         // Restore normal state (Icon visible, text hidden for send button)
-         if (icon) icon.style.display = 'inline'; // Show icon
-         if (span) span.style.display = 'none'; // Hide text
-    }
-}
-
-/**
- * Simple HTML escaping function.
- * @param {string} str - String to escape.
- * @returns {string} Escaped string.
- */
-function escapeHtml(str) {
-    if (!str) return '';
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;' // Use HTML entity for single quote
-    };
-    return str.replace(/[&<>"']/g, function(m) { return map[m]; });
-}
+lwhOpenCbotfetchBotConfiguration();
 

@@ -1,206 +1,215 @@
 <?php
-// Prevent direct access
-if ( ! defined( 'ABSPATH' ) ) {
-    exit;
-}
-
-/**
- * Adds the meta box to the 'wph_entries' post type edit screen.
- */
+// Hook to add the meta box
+add_action('add_meta_boxes', 'wph_entries_add_meta_box');
 function wph_entries_add_meta_box() {
     add_meta_box(
-        'wph_entries_meta_box',          // Unique ID
-        'Entry Details',                 // Box title
-        'wph_entries_meta_box_callback', // Content callback function
-        'wph_entries',                   // Post type
-        'normal',                        // Context ('normal', 'side', 'advanced')
-        'high'                           // Priority ('high', 'core', 'default', 'low')
+        'wph_entries_meta_box',
+        'Entry Details',
+        'wph_entries_meta_box_callback',
+        'wph_entries',
+        'normal',
+        'high'
     );
 }
-add_action('add_meta_boxes', 'wph_entries_add_meta_box');
 
-/**
- * Renders the content of the 'Entry Details' meta box.
- *
- * @param WP_Post $post The post object.
- */
+// Callback function for rendering the content of the meta box
 function wph_entries_meta_box_callback($post) {
-    // Retrieve meta values, escaping them for security
-    $name             = esc_html(get_post_meta($post->ID, '_name', true));
-    $email            = esc_html(get_post_meta($post->ID, '_email', true));
-    $phone            = esc_html(get_post_meta($post->ID, '_phone', true));
-    $query            = esc_html(get_post_meta($post->ID, '_query', true));
-    $current_page_url = esc_url(get_post_meta($post->ID, '_current_page_url', true)); // Use esc_url for URLs
-    $user_country     = esc_html(get_post_meta($post->ID, '_user_country', true));
-    $chats_json       = get_post_meta($post->ID, '_chats', true);
-    $chats_data       = json_decode($chats_json, true);
-    // $leadId        = esc_html(get_post_meta($post->ID, '_lead_id', true)); // Not currently used in display
+    // Retrieve meta values
+    $name = get_post_meta($post->ID, '_name', true);
+    $email = get_post_meta($post->ID, '_email', true);
+    $phone = get_post_meta($post->ID, '_phone', true);
+    $query = get_post_meta($post->ID, '_query', true);
+    $current_page_url = get_post_meta($post->ID, '_current_page_url', true);
+    $user_country = get_post_meta($post->ID, '_user_country', true);
+    $chats = get_post_meta($post->ID, '_chats', true);
+    $chats_data = json_decode($chats, true);
+    $leadId = get_post_meta($post->ID, '_lead_id', true);
 
-    // FIX: Use CHATBOT_PLUGIN_URL constant for reliable default image paths
-    $user_avatar_url = get_option('wph_user_image', CHATBOT_PLUGIN_URL . 'assets/images/user-avatar.png');
-    $bot_image_url   = get_option('wph_bot_image', CHATBOT_PLUGIN_URL . 'assets/images/bot-logo.png');
+    // Get avatar URLs from settings, with fallbacks
+    $default_user_avatar = CHATBOT_PLUGIN_URL . 'assets/images/user-avatar.png';
+    $default_bot_image = CHATBOT_PLUGIN_URL . 'assets/images/bot-logo.png';
+    $user_avatar_url = get_option('wph_user_image', $default_user_avatar);
+    $bot_image_url = get_option('wph_bot_image', $default_bot_image);
 
-    // Ensure URLs are properly escaped for use in src attributes
-    $user_avatar_url = esc_url($user_avatar_url);
-    $bot_image_url   = esc_url($bot_image_url);
-
-    // Inline CSS for styling the meta box content
-    // Note: It's generally better to enqueue a separate CSS file for maintainability.
+    // Ensure URLs are valid, even if option is empty
+    if (empty($user_avatar_url)) $user_avatar_url = $default_user_avatar;
+    if (empty($bot_image_url)) $bot_image_url = $default_bot_image;
+    
     ?>
-    <style>
-        .entry-details-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Responsive grid */
-            gap: 20px;
-            margin-bottom: 25px;
-            padding: 15px;
-            border: 1px solid #ccd0d4;
-            background-color: #f6f7f7;
-            border-radius: 4px;
-        }
-        .entry-detail-item {
-            font-size: 14px; /* Slightly larger font */
-            line-height: 1.6;
-        }
-        .entry-detail-item strong {
-            display: block; /* Label on its own line */
-            font-weight: 600; /* Standard bold */
-            margin-bottom: 5px;
-            color: #2c3338;
-        }
-        .entry-detail-item a {
-             word-break: break-all; /* Prevent long URLs from breaking layout */
-        }
-        .chat-history-container {
-            margin-top: 25px;
-            border: 1px solid #ccd0d4;
-            border-radius: 4px;
-            background-color: #fff;
-            padding: 20px;
-        }
-        .chat-history-container h3 {
-            margin-top: 0;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #ccd0d4;
-            padding-bottom: 10px;
-            font-size: 1.2em;
-        }
-        .chat-row {
-            display: flex;
-            margin-bottom: 15px; /* Increased spacing */
-            align-items: flex-start; /* Align avatar top */
-        }
-        .chat-row.user-message {
-            justify-content: flex-end;
-        }
-        .chat-row.ai-message {
-            justify-content: flex-start;
-        }
-        .chat-avatar {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            flex-shrink: 0; /* Prevent avatar shrinking */
-        }
-        .user-message .chat-avatar {
-            order: 2; /* Move avatar to the right */
-            margin-left: 10px;
-        }
-        .ai-message .chat-avatar {
-            order: 1;
-            margin-right: 10px;
-        }
-        .chat-bubble {
-            max-width: 75%; /* Slightly wider max-width */
-            padding: 10px 15px;
-            border-radius: 18px; /* More rounded */
-            font-size: 14px;
-            line-height: 1.5;
-            word-wrap: break-word; /* Ensure long words wrap */
-            position: relative; /* Needed for potential future pseudo-elements like tails */
-        }
-        .user-message .chat-bubble {
-            background-color: #007cba; /* Standard WordPress blue */
-            color: #fff;
-            border-bottom-right-radius: 5px; /* Slightly different corner */
-            order: 1;
-        }
-        .ai-message .chat-bubble {
-            background-color: #e5e5e5; /* Lighter grey */
-            color: #3c434a; /* Darker text for contrast */
-            border-bottom-left-radius: 5px; /* Slightly different corner */
-            order: 2;
-        }
-        .no-chats-message {
-            background-color: #f0f6fc;
-            border-left: 4px solid #007cba;
-            padding: 10px 15px;
-            margin-top: 15px;
-            color: #3c434a;
-        }
-    </style>
-    <?php
-
-    // Display the entry details using the grid layout
-    echo '<div class="entry-details-grid">';
-    echo '<div class="entry-detail-item"><strong>User Name:</strong> ' . $name . '</div>';
-    echo '<div class="entry-detail-item"><strong>User Email:</strong> ' . $email . '</div>';
-    echo '<div class="entry-detail-item"><strong>User Phone:</strong> ' . $phone . '</div>';
-    echo '<div class="entry-detail-item"><strong>Initial Query:</strong> ' . nl2br($query) . '</div>'; // Use nl2br for multiline queries
-    echo '<div class="entry-detail-item"><strong>Chat Page URL:</strong> <a href="' . $current_page_url . '" target="_blank" rel="noopener noreferrer">' . $current_page_url . '</a></div>';
-    echo '<div class="entry-detail-item"><strong>User Country:</strong> ' . $user_country . '</div>';
-    echo '</div>'; // End entry-details-grid
-
-    // Display the chat section
-    echo '<div class="chat-history-container">';
-    echo '<h3>Chat History</h3>';
-
-    // Check if chat data is valid
-    if (is_array($chats_data) && count($chats_data) > 2) { // Ensure there are messages beyond the initial prompts
-        // Skip the first two setup messages
-        $messages_to_skip = 2;
-
-        for ($i = $messages_to_skip; $i < count($chats_data); $i++) {
-            $chat = $chats_data[$i];
-
-            if (isset($chat['role']) && isset($chat['parts']['text'])) {
-                 // Sanitize the text for output - allow basic HTML like links
-                $allowed_html = [
-                    'a' => [
-                        'href'   => true,
-                        'target' => true,
-                        'rel'    => true,
-                    ],
-                    'br' => [],
-                    'strong' => [],
-                    'em' => [],
-                    'ul' => [],
-                    'ol' => [],
-                    'li' => [],
-                    'p' => [],
-                ];
-                $text = wp_kses($chat['parts']['text'], $allowed_html);
-                $text = nl2br($text); // Convert newlines to <br> after sanitization
-
-                if ($chat['role'] === 'user') {
-                    // User message
-                    echo '<div class="chat-row user-message">';
-                    echo '<div class="chat-bubble">' . $text . '</div>';
-                    echo '<img class="chat-avatar" src="' . $user_avatar_url . '" alt="User Avatar">';
-                    echo '</div>';
-                } elseif ($chat['role'] === 'model') {
-                    // AI message
-                    echo '<div class="chat-row ai-message">';
-                    echo '<img class="chat-avatar" src="' . $bot_image_url . '" alt="AI Avatar">';
-                    echo '<div class="chat-bubble">' . $text . '</div>';
-                    echo '</div>';
+    <!-- Wrapper to integrate with new admin UI -->
+    <div class="wrap wph-chatbot-admin-wrap font-sans text-text-primary bg-bg-muted -ml-5 -mt-4">
+         <script>
+            // Configure Tailwind for our admin page
+            if (typeof tailwind !== 'undefined') {
+                tailwind.config = {
+                    theme: {
+                        extend: {
+                            fontFamily: {
+                                sans: ['Inter', 'sans-serif'],
+                            },
+                            colors: {
+                                'primary': '#3E64DE',
+                                'primary-light': '#F0F3FF',
+                                'primary-hover': '#2F50BB',
+                                'success': '#27AE60',
+                                'warning': '#FDB32C',
+                                'danger': '#EB5757',
+                                'info': '#2D9CDB',
+                                'text-primary': '#1A2133',
+                                'text-secondary': '#5B616F',
+                                'text-muted': '#9FA3AB',
+                                'border-color': '#E3E5E8',
+                                'bg-muted': '#F8F9FA',
+                                'bg-light': '#FAFAFB',
+                            },
+                            borderRadius: {
+                                'DEFAULT': '8px',
+                                'lg': '16px',
+                                'sm': '4px',
+                            },
+                            boxShadow: {
+                                'DEFAULT': '0px 2px 4px 0px rgba(118, 126, 148, 0.08), 0px 0px 2px 0px rgba(139, 147, 171, 0.12)',
+                            }
+                        }
+                    }
                 }
             }
-        }
-    } else {
-        echo '<p class="no-chats-message">No further conversation recorded after the initial query.</p>';
-    }
+        </script>
 
-    echo '</div>'; // End chat-history-container
+        <div class="flex min-h-screen">
+            <?php wph_chatbot_admin_sidebar(); // Render the sidebar ?>
+
+            <main class="flex-1">
+                <div class="p-6 md:p-10 max-w-7xl mx-auto">
+                    <!-- Header -->
+                    <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
+                        <div>
+                            <h1 class="text-3xl font-bold text-text-primary">
+                                View Entry
+                            </h1>
+                            <p class="text-text-secondary mt-1">
+                                Conversation details for <strong><?php echo esc_html($name); ?></strong>
+                            </p>
+                        </div>
+                        <div>
+                            <a href="<?php echo admin_url('edit.php?post_type=wph_entries'); ?>" class="bg-white text-text-secondary px-5 py-3 rounded-lg font-semibold shadow-sm border border-border-color hover:bg-bg-light flex items-center justify-center gap-2">
+                                <span data-lucide="arrow-left" class="w-4 h-4"></span>
+                                Back to All Entries
+                            </a>
+                        </div>
+                    </header>
+
+                    <!-- User Details Card -->
+                    <div class="bg-white rounded-lg shadow">
+                        <div class="p-6 border-b border-border-color">
+                            <h2 class="text-xl font-semibold text-text-primary">
+                                User Details
+                            </h2>
+                        </div>
+                        <div class="p-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div>
+                                    <label class="text-sm font-medium text-text-muted">Name</label>
+                                    <p class="text-base text-text-primary font-medium"><?php echo esc_html($name); ?></p>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-text-muted">Email</label>
+                                    <p class="text-base text-text-primary font-medium"><?php echo esc_html($email); ?></p>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-text-muted">Phone</label>
+                                    <p class="text-base text-text-primary font-medium"><?php echo esc_html($phone); ?></p>
+                                </div>
+                                <div>
+                                    <label class="text-sm font-medium text-text-muted">User Country</label>
+                                    <p class="text-base text-text-primary font-medium"><?php echo esc_html($user_country); ?></p>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="text-sm font-medium text-text-muted">Chat Page URL</label>
+                                    <p class="text-base text-text-primary font-medium truncate">
+                                        <a href="<?php echo esc_url($current_page_url); ?>" target="_blank" class="text-primary hover:underline">
+                                            <?php echo esc_html($current_page_url); ?>
+                                        </a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat History Card -->
+                    <div class="bg-white rounded-lg shadow mt-8">
+                        <div class="p-6 border-b border-border-color">
+                            <h2 class="text-xl font-semibold text-text-primary">
+                                Chat History
+                            </h2>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            <?php if (is_array($chats_data) && !empty($chats_data)) : ?>
+                                
+                                <!-- Initial Query -->
+                                <div class="flex items-start gap-4">
+                                    <img class="w-10 h-10 rounded-full border border-border-color" src="<?php echo esc_url($user_avatar_url); ?>" alt="User Avatar">
+                                    <div class="flex-1">
+                                        <div class="bg-primary text-white p-4 rounded-r-lg rounded-b-lg inline-block max-w-xl">
+                                            <p class="text-sm font-bold mb-1">Initial Query:</p>
+                                            <p class="text-base"><?php echo nl2br(esc_html($query)); ?></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <?php
+                                // Skip the first two messages (system prompt and confirmation)
+                                $messages_to_skip = 2;
+                                foreach ($chats_data as $index => $chat) :
+                                    if ($index < $messages_to_skip) continue;
+                                    if (!isset($chat['role']) || !isset($chat['parts']['text'])) continue;
+                                    
+                                    $text = nl2br(esc_html($chat['parts']['text'])); // Sanitize and format
+
+                                    if ($chat['role'] === 'user') :
+                                ?>
+                                    <!-- User Message -->
+                                    <div class="flex items-start justify-end gap-4">
+                                        <div class="flex-1 text-right">
+                                            <div class="bg-primary text-white p-4 rounded-l-lg rounded-b-lg inline-block max-w-xl text-left">
+                                                <p class="text-base"><?php echo $text; ?></p>
+                                            </div>
+                                        </div>
+                                        <img class="w-10 h-10 rounded-full border border-border-color" src="<?php echo esc_url($user_avatar_url); ?>" alt="User Avatar">
+                                    </div>
+
+                                <?php elseif ($chat['role'] === 'model') : ?>
+                                    <!-- AI Message -->
+                                    <div class="flex items-start gap-4">
+                                        <img class="w-10 h-10 rounded-full border border-border-color" src="<?php echo esc_url($bot_image_url); ?>" alt="Bot Avatar">
+                                        <div class="flex-1">
+                                            <div class="bg-bg-light border border-border-color p-4 rounded-r-lg rounded-b-lg inline-block max-w-xl">
+                                                <p class="text-base text-text-secondary"><?php echo $text; ?></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php 
+                                    endif;
+                                endforeach; 
+                                ?>
+
+                            <?php else : ?>
+                                <p class="text-text-secondary text-center py-4">No chat history available after the initial query.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    
+                </div>
+            </main>
+        </div>
+
+        <!-- Script to render icons -->
+        <script>
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        </script>
+    </div>
+    <?php
 }
 ?>
