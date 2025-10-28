@@ -3,40 +3,11 @@
  * This file styles the new Tailwind-based admin UI.
  */
 
-/* NEW: Hide default WordPress UI for our plugin pages */
-body.toplevel_page_wph-chatbot #wpcontent,
-body.wph-chatbot_page_wph-chatbot-train #wpcontent,
-body.wph-chatbot_page_wph-chatbot-settings #wpcontent,
-body.post-type-wph_entries #wpcontent {
-    padding-left: 0; /* Remove default padding */
-    margin-left: 0;   /* Remove default margin */
-}
-
-body.toplevel_page_wph-chatbot #adminmenumain,
-body.wph-chatbot_page_wph-chatbot-train #adminmenumain,
-body.wph-chatbot_page_wph-chatbot-settings #adminmenumain,
-body.post-type-wph_entries #adminmenumain {
-    display: none; /* Hide WP main menu */
-}
-
-body.toplevel_page_wph-chatbot #wpadminbar,
-body.wph-chatbot_page_wph-chatbot-train #wpadminbar,
-body.wph-chatbot_page_wph-chatbot-settings #wpadminbar,
-body.post-type-wph_entries #wpadminbar {
-    display: none; /* Hide WP admin bar */
-}
-
-body.toplevel_page_wph-chatbot #wpfooter,
-body.wph-chatbot_page_wph-chatbot-train #wpfooter,
-body.wph-chatbot_page_wph-chatbot-settings #wpfooter,
-body.post-type-wph_entries #wpfooter {
-    display: none; /* Hide WP footer */
-}
-
-/* NEW: Reset margin on our wrapper */
+/* NEW: Style for the wrapper to fit inside WP Admin */
 .wph-chatbot-admin-wrap {
-    margin: 0;
-    max-width: none; /* Allow our layout to be full-width */
+    margin-top: 20px;
+    margin-right: 20px; /* Standard WP admin margin */
+    max-width: 1280px;
 }
 
 /* Hide the default WordPress form table layout */
@@ -86,21 +57,8 @@ body.post-type-wph_entries #wpfooter {
 }
 
 /* NEW: Style the "Entries" list view */
-/* This wraps our new sidebar and the WP list table */
-body.post-type-wph_entries #wpbody-content {
-    display: flex;
-    background: #F8F9FA; /* bg-muted */
-}
-
 /* Hide default WP list page UI that we replace */
-body.post-type-wph_entries .wp-heading-inline,
 body.post-type-wph_entries .page-title-action {
     display: none;
 }
 
-/* Style the WP list table to look like our content */
-body.post-type-wph_entries .wrap {
-    margin: 0;
-    flex: 1;
-    padding: 2.5rem; /* p-10 */
-}

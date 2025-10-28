@@ -87,9 +87,6 @@ function wph_chatbot_admin_enqueue_assets($hook_suffix) {
         // Enqueue Tailwind CSS
         wp_enqueue_script('wph-chatbot-tailwind', 'https://cdn.tailwindcss.com', [], null, false);
 
-        // NEW: Enqueue Lucide Icons script (from your code.html example)
-        wp_enqueue_script('wph-chatbot-lucide', 'https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js', [], null, true);
-
         // Enqueue WordPress Media Uploader scripts
         wp_enqueue_media();
 
@@ -119,92 +116,12 @@ function wph_chatbot_admin_enqueue_assets($hook_suffix) {
     }
 }
 
-// --- NEW: Function to render the sidebar ---
-function wph_chatbot_admin_sidebar() {
-    $current_page = $_GET['page'] ?? '';
-    if (empty($current_page) && strpos($_SERVER['REQUEST_URI'], 'edit.php?post_type=wph_entries') !== false) {
-        $current_page = 'edit.php?post_type=wph_entries';
-    }
-    if (empty($current_page) && strpos($_SERVER['REQUEST_URI'], 'post_type=wph_entries') !== false) {
-        $current_page = 'edit.php?post_type=wph_entries'; // Highlight for CPT list/edit
-    }
-    if (empty($current_page)) {
-        $current_page = 'wph-chatbot'; // Default to dashboard
-    }
-    
-    $menu_items = [
-        'wph-chatbot' => [
-            'label' => 'Dashboard',
-            'icon' => 'layout-dashboard',
-            'url' => admin_url('admin.php?page=wph-chatbot'),
-        ],
-        'edit.php?post_type=wph_entries' => [
-            'label' => 'Entries',
-            'icon' => 'inbox',
-            'url' => admin_url('edit.php?post_type=wph_entries'),
-        ],
-        'wph-chatbot-train' => [
-            'label' => 'Train Bot',
-            'icon' => 'brain',
-            'url' => admin_url('admin.php?page=wph-chatbot-train'),
-        ],
-        'wph-chatbot-settings' => [
-            'label' => 'Settings',
-            'icon' => 'settings',
-            'url' => admin_url('admin.php?page=wph-chatbot-settings'),
-        ],
-    ];
-
-    ?>
-    <aside class="w-64 bg-white shadow-lg flex-col hidden md:flex min-h-screen">
-        <div class="p-6">
-            <a href="<?php echo admin_url('admin.php?page=wph-chatbot'); ?>" class="flex items-center gap-2">
-                <span class="bg-primary text-white w-8 h-8 rounded-lg flex items-center justify-center font-bold text-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="M8 12h.01"></path><path d="M12 12h.01"></path><path d="M16 12h.01"></path></svg>
-                </span>
-                <span class="text-text-primary text-xl font-bold">WPH Chatbot</span>
-            </a>
-        </div>
-        
-        <!-- Navigation -->
-        <nav class="flex-1 p-4">
-            <ul class="space-y-2">
-                <?php foreach ($menu_items as $slug => $item) : ?>
-                    <?php
-                        $is_active = ($slug === $current_page);
-                        // Special check for entries CPT
-                        if ($slug === 'edit.php?post_type=wph_entries' && (
-                            (isset($_GET['post_type']) && $_GET['post_type'] === 'wph_entries') ||
-                            (isset($_GET['page']) && $_GET['page'] === 'wph-chatbot' && strpos($_SERVER['REQUEST_URI'], 'edit.php') !== false)
-                        )) {
-                             $is_active = true;
-                        }
-
-                        // Special check for dashboard
-                        if ($slug === 'wph-chatbot' && (isset($_GET['page']) && $_GET['page'] === 'wph-chatbot') && (strpos($_SERVER['REQUEST_URI'], 'edit.php') === false)) {
-                            $is_active = true;
-                        }
-                    ?>
-                    <li>
-                        <a href="<?php echo esc_url($item['url']); ?>" 
-                           class="flex items-center gap-3 p-3 rounded-lg <?php echo $is_active ? 'bg-primary-light text-primary font-semibold' : 'text-text-secondary hover:bg-bg-light hover:text-text-primary'; ?>">
-                            <span data-lucide="<?php echo esc_attr($item['icon']); ?>"></span>
-                            <?php echo esc_html($item['label']); ?>
-                        </a>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        </nav>
-    </aside>
-    <?php
-}
-
 
 // --- Utility function for rendering settings form wrapper ---
-// FIX: Added $settings_group parameter to specify which group to use
+// REVERT: Simplified wrapper to fit inside WP Admin
 function wph_chatbot_form_wrapper_start($page_slug, $page_title, $settings_group) {
     ?>
-    <div class="wrap wph-chatbot-admin-wrap font-sans text-text-primary bg-bg-muted">
+    <div class="wrap wph-chatbot-admin-wrap font-sans text-text-primary">
         <script>
             // Configure Tailwind for our admin page based on the style guide
             tailwind.config = {
@@ -241,44 +158,33 @@ function wph_chatbot_form_wrapper_start($page_slug, $page_title, $settings_group
             }
         </script>
         
-        <div class="flex min-h-screen">
-            <?php wph_chatbot_admin_sidebar(); ?>
+        <!-- FIX: Form tag now wraps the header AND the content -->
+        <form method="post" action="options.php">
+            <?php
+            // FIX: Use the dynamic $settings_group variable
+            settings_fields($settings_group);
+            ?>
             
-            <main class="flex-1">
-                <!-- FIX: Form tag now wraps the header AND the content -->
-                <form method="post" action="options.php" class="p-6 md:p-10 max-w-7xl mx-auto">
-                    <?php
-                    // FIX: Use the dynamic $settings_group variable
-                    settings_fields($settings_group);
-                    ?>
-                    
-                    <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
-                        <div>
-                            <h1 class="text-3xl font-bold text-text-primary"><?php echo esc_html($page_title); ?></h1>
-                        </div>
-                        <div>
-                            <!-- This button is now INSIDE the form -->
-                            <?php submit_button('Save Changes', 'primary large'); ?>
-                        </div>
-                    </header>
+            <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-text-primary"><?php echo esc_html($page_title); ?></h1>
+                </div>
+                <div>
+                    <!-- This button is now INSIDE the form -->
+                    <?php submit_button('Save Changes', 'primary large'); ?>
+                </div>
+            </header>
 
-                    <?php
-                    // We'll manually render sections
-                    ?>
+            <?php
+            // We'll manually render sections
+            ?>
     <?php
 }
 
+// REVERT: Simplified closing wrapper
 function wph_chatbot_form_wrapper_end() {
     ?>
-                </form> <!-- FIX: This closing tag matches the opening tag in wrapper_start -->
-            </main>
-        </div>
-        <!-- NEW: Script to render icons -->
-        <script>
-            if (window.lucide) {
-                lucide.createIcons();
-            }
-        </script>
+        </form> <!-- This closing tag matches the opening tag in wrapper_start -->
     </div>
     <?php
 }
@@ -460,7 +366,7 @@ function wph_chatbot_render_image_uploader_field($name, $label, $description = '
 // PAGE CALLBACK FUNCTIONS
 // ==================================================================
 
-// UPDATED: Function to display the main chatbot page content
+// REVERT: Simplified main page to fit inside WP Admin
 function wph_chatbot_main_page() {
     // Get total entries count
     $entry_count = wp_count_posts('wph_entries');
@@ -470,7 +376,7 @@ function wph_chatbot_main_page() {
     $bot_enabled = get_option('wph_chatbot_enabled', 1);
     
     ?>
-    <div class="wrap wph-chatbot-admin-wrap font-sans text-text-primary bg-bg-muted">
+    <div class="wrap wph-chatbot-admin-wrap font-sans text-text-primary">
          <script>
             // Configure Tailwind for our admin page based on the style guide
             tailwind.config = {
@@ -506,83 +412,70 @@ function wph_chatbot_main_page() {
                 }
             }
         </script>
+        
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-text-primary">
+                    WPH Chatbot Dashboard
+                </h1>
+                <p class="text-text-secondary mt-1">
+                    Welcome! Here's an overview of your chatbot's activity.
+                </p>
+            </div>
+        </header>
 
-        <div class="flex min-h-screen">
-            <?php wph_chatbot_admin_sidebar(); ?>
-
-            <main class="flex-1">
-                <div class="p-6 md:p-10 max-w-7xl mx-auto">
-                    <!-- Header -->
-                    <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
-                        <div>
-                            <h1 class="text-3xl font-bold text-text-primary">
-                                WPH Chatbot Dashboard
-                            </h1>
-                            <p class="text-text-secondary mt-1">
-                                Welcome! Here's an overview of your chatbot's activity.
-                            </p>
-                        </div>
-                    </header>
-
-                    <!-- Stats Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div class="bg-white p-6 rounded-lg shadow">
-                            <div class="flex items-center gap-4">
-                                <div class="p-3 rounded-lg bg-primary-light text-primary">
-                                    <span data-lucide="inbox" class="w-6 h-6"></span>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-text-secondary font-medium">Total Entries</p>
-                                    <p class="text-3xl font-bold text-text-primary"><?php echo esc_html($total_entries); ?></p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-white p-6 rounded-lg shadow">
-                            <div class="flex items-center gap-4">
-                                <div class="p-3 rounded-lg <?php echo $bot_enabled ? 'bg-green-100 text-success' : 'bg-red-100 text-danger'; ?>">
-                                    <span data-lucide="<?php echo $bot_enabled ? 'check-circle' : 'x-circle'; ?>" class="w-6 h-6"></span>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-text-secondary font-medium">Chatbot Status</p>
-                                    <p class="text-3xl font-bold text-text-primary"><?php echo $bot_enabled ? 'Online' : 'Offline'; ?></p>
-                                </div>
-                            </div>
-                        </div>
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-lg shadow">
+                <div class="flex items-center gap-4">
+                    <div class="p-3 rounded-lg bg-primary-light text-primary">
+                        <!-- Icon for entries -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     </div>
-
-                    <!-- Quick Links Card -->
-                    <div class="bg-white rounded-lg shadow mt-8">
-                        <div class="p-6 border-b border-border-color">
-                            <h2 class="text-xl font-semibold text-text-primary">
-                                Quick Links
-                            </h2>
-                        </div>
-                        <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <a href="<?php echo admin_url('edit.php?post_type=wph_entries'); ?>" class="p-4 border border-border-color rounded-lg hover:bg-bg-light hover:shadow-sm transition-all">
-                                <h3 class="text-base font-semibold text-primary">View Entries</h3>
-                                <p class="text-sm text-text-secondary mt-1">See all the leads and conversations captured by the bot.</p>
-                            </a>
-                            <a href="<?php echo admin_url('admin.php?page=wph-chatbot-train'); ?>" class="p-4 border border-border-color rounded-lg hover:bg-bg-light hover:shadow-sm transition-all">
-                                <h3 class="text-base font-semibold text-primary">Train Bot</h3>
-                                <p class="text-sm text-text-secondary mt-1">Update your bot's knowledge and organization info.</p>
-                            </a>
-                            <a href="<?php echo admin_url('admin.php?page=wph-chatbot-settings'); ?>" class="p-4 border border-border-color rounded-lg hover:bg-bg-light hover:shadow-sm transition-all">
-                                <h3 class="text-base font-semibold text-primary">Configure Settings</h3>
-                                <p class="text-sm text-text-secondary mt-1">Adjust API keys, appearance, and other core settings.</p>
-                            </a>
-                        </div>
+                    <div>
+                        <p class="text-sm text-text-secondary font-medium">Total Entries</p>
+                        <p class="text-3xl font-bold text-text-primary"><?php echo esc_html($total_entries); ?></p>
                     </div>
                 </div>
-            </main>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow">
+                <div class="flex items-center gap-4">
+                    <div class="p-3 rounded-lg <?php echo $bot_enabled ? 'bg-green-100 text-success' : 'bg-red-100 text-danger'; ?>">
+                        <!-- Icon for status -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="<?php echo $bot_enabled ? 'm9 12 2 2 4-4' : 'm15 9-6 6m0-6 6 6'; ?>"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-text-secondary font-medium">Chatbot Status</p>
+                        <p class="text-3xl font-bold text-text-primary"><?php echo $bot_enabled ? 'Online' : 'Offline'; ?></p>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- NEW: Script to render icons -->
-        <script>
-            if (window.lucide) {
-                lucide.createIcons();
-            }
-        </script>
+        <!-- Quick Links Card -->
+        <div class="bg-white rounded-lg shadow mt-8">
+            <div class="p-6 border-b border-border-color">
+                <h2 class="text-xl font-semibold text-text-primary">
+                    Quick Links
+                </h2>
+            </div>
+            <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <a href="<?php echo admin_url('edit.php?post_type=wph_entries'); ?>" class="p-4 border border-border-color rounded-lg hover:bg-bg-light hover:shadow-sm transition-all">
+                    <h3 class="text-base font-semibold text-primary">View Entries</h3>
+                    <p class="text-sm text-text-secondary mt-1">See all the leads and conversations captured by the bot.</p>
+                </a>
+                <a href="<?php echo admin_url('admin.php?page=wph-chatbot-train'); ?>" class="p-4 border border-border-color rounded-lg hover:bg-bg-light hover:shadow-sm transition-all">
+                    <h3 class="text-base font-semibold text-primary">Train Bot</h3>
+                    <p class="text-sm text-text-secondary mt-1">Update your bot's knowledge and organization info.</p>
+                </a>
+                <a href="<?php echo admin_url('admin.php?page=wph-chatbot-settings'); ?>" class="p-4 border border-border-color rounded-lg hover:bg-bg-light hover:shadow-sm transition-all">
+                    <h3 class="text-base font-semibold text-primary">Configure Settings</h3>
+                    <p class="text-sm text-text-secondary mt-1">Adjust API keys, appearance, and other core settings.</p>
+                </a>
+            </div>
+        </div>
     </div>
     <?php
 }
@@ -764,3 +657,4 @@ function wph_chatbot_settings_init() {
     register_setting('wph_chatbot_train_group', 'wph_button_5_query', 'sanitize_text_field');
 }
 ?>
+
