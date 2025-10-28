@@ -63,11 +63,13 @@ body.post-type-wph_entries .page-title-action {
     display: none;
 }
 
-/* Main content area adjustments */
+/* Apply Overflow to the main wrap container FOR THIS PAGE ONLY */
 body.post-type-wph_entries #wpbody-content .wrap {
-    margin: 0; /* Remove default WP wrap margin */
-    padding: 20px; /* Add some padding around the content */
-    max-width: 100%; /* Ensure it uses available space */
+    margin: 0;
+    padding: 20px;
+    max-width: 100%;
+    overflow-x: auto !important; /* Force horizontal scroll on the main content wrap */
+    box-sizing: border-box; /* Ensure padding doesn't add to width */
 }
 
 
@@ -75,20 +77,40 @@ body.post-type-wph_entries #wpbody-content .wrap {
 body.post-type-wph_entries .tablenav.top {
     background-color: #ffffff; /* bg-white */
     padding: 1rem 1.5rem; /* p-4 md:p-6 */
-    border-radius: 1rem 1rem 0 0; /* rounded-t-lg */
+    border-radius: 0.75rem; /* Slightly smaller radius */
     border: 1px solid #E3E5E8; /* border border-border-color */
-    border-bottom: none; /* Remove bottom border */
     box-shadow: 0px 1px 2px 0px rgba(118, 126, 148, 0.06); /* Subtle shadow */
     margin-top: 2rem;
-    margin-bottom: 0; /* Remove bottom margin */
-    height: auto; /* Allow height to adjust */
+    margin-bottom: 1.5rem; /* Add space below filters */
+    height: auto;
+    display: flex; /* Use flexbox */
+    justify-content: space-between; /* Space out left/right sections */
+    align-items: center; /* Vertically center items */
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    gap: 1rem; /* Gap between left/right sections */
 }
-/* Use Flexbox for filter/action alignment */
-body.post-type-wph_entries .tablenav.top .actions {
+/* Left section (bulk actions, filters) */
+body.post-type-wph_entries .tablenav.top .alignleft {
     display: flex;
-    flex-wrap: wrap; /* Allow items to wrap */
-    gap: 0.75rem; /* Add space between items */
-    padding: 0; /* WP Reset */
+    flex-wrap: wrap; /* Allow items within to wrap */
+    gap: 0.75rem; /* Space between filter elements */
+    align-items: center;
+    float: none !important; /* Override WP float */
+    margin-right: auto; /* Push right section away */
+}
+/* Right section (search, item count) */
+body.post-type-wph_entries .tablenav.top .alignright {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    float: none !important; /* Override WP float */
+    margin-left: auto; /* Push left section away */
+}
+
+/* Style individual actions within the bars */
+body.post-type-wph_entries .tablenav .actions {
+    padding: 0;
 }
 body.post-type-wph_entries .tablenav.top .bulkactions {
     display: flex;
@@ -97,31 +119,29 @@ body.post-type-wph_entries .tablenav.top .bulkactions {
 }
 
 
-/* Wrap the table for scrolling */
+/* Remove the separate table wrapper styling - scrolling is now on .wrap */
 body.post-type-wph_entries .wp-list-table-wrap {
-    display: block; /* Ensure it's a block element */
-    overflow-x: auto; /* *** ADD HORIZONTAL SCROLL HERE *** */
-    background-color: #ffffff; /* bg-white */
-    border-left: 1px solid #E3E5E8; /* Add side borders */
-    border-right: 1px solid #E3E5E8; /* Add side borders */
-    margin-top: 0; /* Remove margin, now handled by tablenav.top */
-    box-shadow: 0px 1px 2px 0px rgba(118, 126, 148, 0.06); /* Match top bar shadow */
+    /* Reset styles if they were applied before */
+    display: block;
+    overflow-x: visible; /* Let parent handle overflow */
+    background-color: transparent;
+    border: none;
+    margin-top: 0;
+    box-shadow: none;
 }
 
 
 /* Style the main WP list table (.wp-list-table) */
 body.post-type-wph_entries .wp-list-table {
-    border: none;
-    width: 100%;
+    border: 1px solid #E3E5E8; /* Add border */
+    width: 100%; /* Take full width */
+    min-width: 900px; /* Force minimum width to ensure scrollbar appears when needed */
     border-collapse: collapse;
-    background-color: #ffffff; /* Ensure white background */
-    /* Add min-width if columns still squash too much, forces scrollbar sooner */
-    /* min-width: 800px; */
-}
-/* Ensure table works correctly inside the wrapper */
-body.post-type-wph_entries .wp-list-table-wrap .wp-list-table {
-    box-shadow: none;
-    border-radius: 0;
+    background-color: #ffffff;
+    border-radius: 0.75rem; /* rounded-lg */
+    box-shadow: 0px 1px 2px 0px rgba(118, 126, 148, 0.06); /* Subtle shadow */
+    overflow: hidden; /* Clip content to border-radius */
+    margin-top: 0; /* remove any top margin */
 }
 
 
@@ -136,14 +156,14 @@ body.post-type-wph_entries .wp-list-table tbody tr:hover {
 
 /* Style table header (thead) */
 body.post-type-wph_entries .wp-list-table thead th {
-    padding: 1rem 1.25rem; /* Adjusted padding slightly */
+    padding: 1rem 1.25rem;
     text-align: left;
-    font-size: 0.75rem; /* text-xs */
-    font-weight: 600; /* font-semibold */
-    color: #9FA3AB; /* text-text-muted */
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #9FA3AB;
     text-transform: uppercase;
-    letter-spacing: 0.05em; /* tracking-wider */
-    border-bottom: 2px solid #E3E5E8; /* Thicker border-b */
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #E3E5E8;
     background-color: #ffffff;
     white-space: nowrap;
 }
@@ -152,38 +172,45 @@ body.post-type-wph_entries .wp-list-table thead th#cb,
 body.post-type-wph_entries .wp-list-table thead .manage-column.column-cb {
      width: 2.5rem;
      padding: 1rem;
-     vertical-align: middle; /* Center checkbox vertically */
+     vertical-align: middle;
      text-align: center;
 }
 body.post-type-wph_entries .wp-list-table thead .manage-column.column-cb input[type="checkbox"] {
-    margin: 0 auto; /* Center checkbox horizontally */
+    margin: 0 auto;
     display: block;
 }
 
 /* Style table body (tbody) cells (td) */
 body.post-type-wph_entries .wp-list-table tbody td {
-    padding: 1rem 1.25rem; /* Adjusted padding slightly */
+    padding: 1rem 1.25rem;
     vertical-align: middle;
-    color: #5B616F; /* text-text-secondary */
-    border-top: none;
-    border-bottom: 1px solid #E3E5E8; /* border-b */
-    font-size: 0.875rem; /* text-sm */
+    color: #5B616F;
+    border-top: 1px solid #E3E5E8; /* Use border-top for separation */
+    border-bottom: none; /* Remove bottom border */
+    font-size: 0.875rem;
     line-height: 1.4;
-    white-space: nowrap; /* Prevent content wrapping initially */
+    white-space: nowrap;
+}
+/* First row doesn't need top border */
+body.post-type-wph_entries .wp-list-table tbody tr:first-child td {
+    border-top: none;
 }
 /* Allow wrapping for specific columns if needed */
 body.post-type-wph_entries .wp-list-table tbody td.column-query,
 body.post-type-wph_entries .wp-list-table tbody td.column-current_page_url {
-    white-space: normal; /* Allow query and URL to wrap */
+    white-space: normal;
 }
-body.post-type-wph_entries .wp-list-table tbody tr:last-child td {
-    border-bottom: none;
-}
+
 /* Checkbox column body alignment */
 body.post-type-wph_entries .wp-list-table tbody th.check-column {
     padding: 1rem;
     vertical-align: middle;
     text-align: center;
+    border-top: 1px solid #E3E5E8;
+    border-bottom: none;
+}
+body.post-type-wph_entries .wp-list-table tbody tr:first-child th.check-column {
+    border-top: none;
 }
 body.post-type-wph_entries .wp-list-table tbody input[type="checkbox"] {
     margin: 0 auto;
@@ -195,7 +222,7 @@ body.post-type-wph_entries .wp-list-table tbody input[type="checkbox"] {
 body.post-type-wph_entries .wp-list-table tbody td.column-primary strong,
 body.post-type-wph_entries .wp-list-table tbody td.column-primary strong a {
     font-weight: 500;
-    color: #1A2133; /* text-text-primary */
+    color: #1A2133;
     font-size: 0.875rem;
 }
 body.post-type-wph_entries .wp-list-table tbody td .post-state {
@@ -233,15 +260,26 @@ body.post-type-wph_entries .wp-list-table .row-actions .trash a:hover {
 body.post-type-wph_entries .tablenav.bottom {
     background-color: #ffffff;
     padding: 1rem 1.5rem;
-    border: 1px solid #E3E5E8; /* Add full border */
-    border-top: none; /* Remove top border */
-    border-radius: 0 0 1rem 1rem; /* rounded-b-lg */
-    box-shadow: 0px 1px 2px 0px rgba(118, 126, 148, 0.06); /* Subtle shadow */
-    margin-top: 0;
+    border: 1px solid #E3E5E8;
+    border-top: none; /* Connects visually with table */
+    border-radius: 0 0 0.75rem 0.75rem; /* rounded-b-lg */
+    box-shadow: 0px 1px 2px 0px rgba(118, 126, 148, 0.06);
+    margin-top: 0; /* Remove top margin */
     height: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
+body.post-type-wph_entries .tablenav.bottom .alignleft {
+    float: none !important;
+}
+body.post-type-wph_entries .tablenav.bottom .alignright {
+    float: none !important;
+}
+
 body.post-type-wph_entries .tablenav .tablenav-pages {
     color: #5B616F;
+    margin: 0; /* Reset margin */
 }
 body.post-type-wph_entries .tablenav .tablenav-pages a,
 body.post-type-wph_entries .tablenav .tablenav-pages span.current {
@@ -289,8 +327,9 @@ body.post-type-wph_entries .tablenav.top .button {
     box-shadow: none;
     border-radius: 0.5rem;
     padding: 0.4rem 1rem;
-    height: auto; /* WP Reset */
-    line-height: normal; /* WP Reset */
+    height: 38px; /* Match typical input height */
+    line-height: normal;
+    vertical-align: middle; /* Align better with selects */
 }
 body.post-type-wph_entries .tablenav.top .button:hover {
     background-color: #FAFAFB;
@@ -299,8 +338,9 @@ body.post-type-wph_entries .tablenav.top .button:hover {
 body.post-type-wph_entries .tablenav.top select {
      border-radius: 0.5rem;
      border-color: #E3E5E8;
-     height: auto; /* WP Reset */
-     padding: 0.4rem 1rem; /* Adjust padding */
+     height: 38px; /* Match typical input height */
+     padding: 0.4rem 1rem;
+     vertical-align: middle; /* Align better with buttons */
 }
 
 
