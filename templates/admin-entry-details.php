@@ -4,7 +4,7 @@ add_action('add_meta_boxes', 'wph_entries_add_meta_box');
 function wph_entries_add_meta_box() {
     add_meta_box(
         'wph_entries_meta_box',
-        'Entry Details',
+        'Entry Details', // Keep meta box title generic for WP context
         'wph_entries_meta_box_callback',
         'wph_entries',
         'normal',
@@ -34,12 +34,12 @@ function wph_entries_meta_box_callback($post) {
     // Ensure URLs are valid, even if option is empty
     if (empty($user_avatar_url)) $user_avatar_url = $default_user_avatar;
     if (empty($bot_image_url)) $bot_image_url = $default_bot_image;
-    
+
     ?>
-    <!-- Wrapper to integrate with new admin UI -->
-    <div class="wph-chatbot-admin-wrap font-sans text-text-primary">
+    <!-- Wrapper for styling within the meta box -->
+    <div class="wph-chatbot-admin-wrap font-sans text-text-primary -ml-5 -mt-4"> <!-- Adjust margins to fit WP meta box -->
          <script>
-            // Configure Tailwind for our admin page
+            // Configure Tailwind for admin page elements
             if (typeof tailwind !== 'undefined') {
                 tailwind.config = {
                     theme: {
@@ -78,7 +78,7 @@ function wph_entries_meta_box_callback($post) {
 
         <main class="flex-1">
             <div class="max-w-7xl mx-auto">
-                
+
                 <!-- User Details Card -->
                 <div class="bg-white rounded-lg shadow">
                     <div class="p-6 border-b border-border-color">
@@ -125,7 +125,7 @@ function wph_entries_meta_box_callback($post) {
                     </div>
                     <div class="p-6 space-y-6">
                         <?php if (is_array($chats_data) && !empty($chats_data)) : ?>
-                            
+
                             <!-- Initial Query -->
                             <div class="flex items-start gap-4">
                                 <img class="w-10 h-10 rounded-full border border-border-color" src="<?php echo esc_url($user_avatar_url); ?>" alt="User Avatar">
@@ -143,7 +143,7 @@ function wph_entries_meta_box_callback($post) {
                             foreach ($chats_data as $index => $chat) :
                                 if ($index < $messages_to_skip) continue;
                                 if (!isset($chat['role']) || !isset($chat['parts']['text'])) continue;
-                                
+
                                 $text = nl2br(esc_html($chat['parts']['text'])); // Sanitize and format
 
                                 if ($chat['role'] === 'user') :
@@ -168,9 +168,9 @@ function wph_entries_meta_box_callback($post) {
                                         </div>
                                     </div>
                                 </div>
-                            <?php 
+                            <?php
                                 endif;
-                            endforeach; 
+                            endforeach;
                             ?>
 
                         <?php else : ?>
@@ -178,7 +178,12 @@ function wph_entries_meta_box_callback($post) {
                         <?php endif; ?>
                     </div>
                 </div>
-                
+
+                 <!-- NEW: Footer Added -->
+                <footer class="mt-12 pt-4 border-t border-border-color text-center text-text-muted text-sm">
+                   Customized and Improved By <a href="https://shurikenit.com" target="_blank" class="text-primary hover:underline font-medium">ShurikenIT</a>
+                </footer>
+
             </div>
         </main>
     </div>

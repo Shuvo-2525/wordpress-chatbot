@@ -3,22 +3,23 @@
 add_action('admin_menu', 'wph_chatbot_menu');
 
 function wph_chatbot_menu() {
-    // Add the main menu item
+    // --- CHANGE: Renamed Menu Titles ---
     add_menu_page(
-        'WPH Chatbot', // Page title
-        'WPH Chatbot', // Menu title
+        'Shuriken AI Chatbot', // Page title
+        'Shuriken AI Chatbot', // Menu title
         'manage_options', // Capability
-        'wph-chatbot', // Menu slug
+        'wph-chatbot', // Menu slug (Keep slug the same for compatibility)
         'wph_chatbot_main_page', // Function to display the main page content
-        'dashicons-smiley', // Icon URL
+        // 'dashicons-smiley', // Icon URL
+        plugins_url('assets/images/shuriken-menu-icon.png', CHATBOT_PLUGIN_DIR . 'wph-chatbot.php'), // Icon URL
         6 // Position
     );
 
-    // Add the dashboard submenu (so "WPH Chatbot" is clickable)
+    // Add the dashboard submenu
     add_submenu_page(
         'wph-chatbot', // Parent slug
-        'Dashboard', // Page title
-        'Dashboard', // Menu title
+        'Shuriken AI Chatbot Dashboard', // Page title
+        'Dashboard', // Menu title (Keep short for sidebar)
         'manage_options', // Capability
         'wph-chatbot', // Menu slug (same as parent)
         'wph_chatbot_main_page' // Function
@@ -27,30 +28,30 @@ function wph_chatbot_menu() {
     // Add the entries submenu
    add_submenu_page(
         'wph-chatbot', // Parent slug
-        'Entries', // Page title
-        'Entries', // Menu title
+        'Shuriken Entries', // Page title
+        'Entries', // Menu title (Keep short for sidebar)
         'manage_options', // Capability
         'edit.php?post_type=wph_entries' // Redirects to the CPT's main page
     );
 
-    // NEW: Add the "Train Bot" submenu
+    // Add the "Train Bot" submenu
     add_submenu_page(
         'wph-chatbot', // Parent slug
-        'Train Bot', // Page title
-        'Train Bot', // Menu title
+        'Train Shuriken AI Bot', // Page title
+        'Train Bot', // Menu title (Keep short for sidebar)
         'manage_options', // Capability
         'wph-chatbot-train', // Menu slug
-        'wph_chatbot_train_bot_page' // Function to display the settings page
+        'wph_chatbot_train_bot_page' // Function
     );
 
     // Add the settings submenu
     add_submenu_page(
         'wph-chatbot', // Parent slug
-        'Settings', // Page title
-        'Settings', // Menu title
+        'Shuriken AI Chatbot Settings', // Page title
+        'Settings', // Menu title (Keep short for sidebar)
         'manage_options', // Capability
         'wph-chatbot-settings', // Menu slug
-        'wph_chatbot_settings_page' // Function to display the settings page
+        'wph_chatbot_settings_page' // Function
     );
 
     // Remove the default duplicate submenu created by add_menu_page
@@ -58,8 +59,8 @@ function wph_chatbot_menu() {
     // Re-add the dashboard at the top
     add_submenu_page(
         'wph-chatbot',
-        'Dashboard',
-        'Dashboard',
+        'Shuriken AI Chatbot Dashboard', // Page title
+        'Dashboard', // Menu title
         'manage_options',
         'wph-chatbot',
         'wph_chatbot_main_page',
@@ -67,21 +68,32 @@ function wph_chatbot_menu() {
     );
 }
 
-// NEW: Enqueue assets for our new admin UI
+// Enqueue assets for our new admin UI
 add_action('admin_enqueue_scripts', 'wph_chatbot_admin_enqueue_assets');
 function wph_chatbot_admin_enqueue_assets($hook_suffix) {
     // Only load on our plugin's pages
     $plugin_pages = [
+        'toplevel_page_wph-chatbot', // Main dashboard page
+        'shuriken-ai-chatbot_page_wph-chatbot-settings', // Settings page (using renamed parent slug temporarily if needed, check actual hook)
+        'shuriken-ai-chatbot_page_wph-chatbot-train',   // Train page (using renamed parent slug temporarily if needed, check actual hook)
+        'edit.php', // For Entries list
+        'post.php', // For Entry detail
+        // -- Check actual hook suffixes if the above don't work after renaming --
+        // Example: If the main page hook becomes 'toplevel_page_shuriken-ai-chatbot' adjust accordingly
         'toplevel_page_wph-chatbot',
         'wph-chatbot_page_wph-chatbot-settings',
         'wph-chatbot_page_wph-chatbot-train',
-        'edit.php', // For Entries list
-        'post.php', // For Entry detail
     ];
 
+    // Get current screen info
+    $screen = get_current_screen();
+    $current_hook = $screen ? $screen->id : '';
+
     // Check if we are on a plugin page or editing a wph_entries CPT
-    $is_plugin_page = in_array($hook_suffix, $plugin_pages);
-    $is_cpt_page = (get_post_type() === 'wph_entries' || (isset($_GET['post_type']) && $_GET['post_type'] === 'wph_entries'));
+    $is_plugin_page = in_array($current_hook, $plugin_pages);
+    // Check post type specifically for edit/post screens
+    $is_cpt_page = ($screen && $screen->post_type === 'wph_entries');
+
 
     if ($is_plugin_page || $is_cpt_page) {
         // Enqueue Tailwind CSS
@@ -90,7 +102,7 @@ function wph_chatbot_admin_enqueue_assets($hook_suffix) {
         // Enqueue WordPress Media Uploader scripts
         wp_enqueue_media();
 
-        // NEW: Enqueue WP Color Picker styles and scripts
+        // Enqueue WP Color Picker styles and scripts
         wp_enqueue_style('wp-color-picker');
         wp_enqueue_script(
             'wph-chatbot-admin-scripts',
@@ -100,7 +112,7 @@ function wph_chatbot_admin_enqueue_assets($hook_suffix) {
             true
         );
 
-        // Enqueue our new admin CSS for UI tweaks
+        // Enqueue our admin CSS for UI tweaks
         wp_enqueue_style(
             'wph-chatbot-admin-styles',
             CHATBOT_PLUGIN_URL . 'assets/css/chatbot-admin-styles.css',
@@ -118,7 +130,6 @@ function wph_chatbot_admin_enqueue_assets($hook_suffix) {
 
 
 // --- Utility function for rendering settings form wrapper ---
-// REVERT: Simplified wrapper to fit inside WP Admin
 function wph_chatbot_form_wrapper_start($page_slug, $page_title, $settings_group) {
     ?>
     <div class="wrap wph-chatbot-admin-wrap font-sans text-text-primary">
@@ -157,26 +168,23 @@ function wph_chatbot_form_wrapper_start($page_slug, $page_title, $settings_group
                 }
             }
         </script>
-        
-        <!-- FIX: Form tag now wraps the header AND the content -->
+
         <form method="post" action="options.php">
             <?php
-            // FIX: Use the dynamic $settings_group variable
             settings_fields($settings_group);
             ?>
-            
+
             <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
                 <div>
                     <h1 class="text-3xl font-bold text-text-primary"><?php echo esc_html($page_title); ?></h1>
                 </div>
                 <div>
-                    <!-- This button is now INSIDE the form -->
                     <?php submit_button('Save Changes', 'primary large'); ?>
                 </div>
             </header>
 
             <?php
-            // We'll manually render sections
+            // Sections rendered below
             ?>
     <?php
 }
@@ -185,6 +193,11 @@ function wph_chatbot_form_wrapper_start($page_slug, $page_title, $settings_group
 function wph_chatbot_form_wrapper_end() {
     ?>
         </form> <!-- This closing tag matches the opening tag in wrapper_start -->
+
+        <!-- NEW: Footer Added -->
+        <footer class="mt-12 pt-4 border-t border-border-color text-center text-text-muted text-sm">
+            Customized and Improved By <a href="https://shurikenit.com" target="_blank" class="text-primary hover:underline font-medium">ShurikenIT</a>
+        </footer>
     </div>
     <?php
 }
@@ -208,6 +221,8 @@ function wph_chatbot_render_card($title, $content_callback) {
 }
 
 // --- Utility function for rendering form fields ---
+// (No changes needed in these helper functions: wph_chatbot_render_text_field, wph_chatbot_render_color_field, etc.)
+// ... [Keep all wph_chatbot_render_*_field functions as they were] ...
 function wph_chatbot_render_text_field($name, $label, $description = '', $placeholder = '', $type = 'text') {
     ?>
     <tr valign="top">
@@ -215,11 +230,11 @@ function wph_chatbot_render_text_field($name, $label, $description = '', $placeh
             <label for="<?php echo esc_attr($name); ?>" class="text-base font-semibold text-text-primary"><?php echo esc_html($label); ?></label>
         </th>
         <td class="w-2/3">
-            <input 
-                type="<?php echo esc_attr($type); ?>" 
-                id="<?php echo esc_attr($name); ?>" 
-                name="<?php echo esc_attr($name); ?>" 
-                value="<?php echo esc_attr(get_option($name)); ?>" 
+            <input
+                type="<?php echo esc_attr($type); ?>"
+                id="<?php echo esc_attr($name); ?>"
+                name="<?php echo esc_attr($name); ?>"
+                value="<?php echo esc_attr(get_option($name)); ?>"
                 placeholder="<?php echo esc_attr($placeholder); ?>"
                 class="w-full max-w-lg p-3 border border-border-color rounded-lg shadow-sm focus:border-primary focus:ring-1 focus:ring-primary"
             />
@@ -230,8 +245,6 @@ function wph_chatbot_render_text_field($name, $label, $description = '', $placeh
     </tr>
     <?php
 }
-
-// NEW: Utility function for rendering a color picker field
 function wph_chatbot_render_color_field($name, $label, $description = '', $default_color = '#00665E') {
     $color = get_option($name, $default_color);
     ?>
@@ -240,10 +253,10 @@ function wph_chatbot_render_color_field($name, $label, $description = '', $defau
             <label for="<?php echo esc_attr($name); ?>" class="text-base font-semibold text-text-primary"><?php echo esc_html($label); ?></label>
         </th>
         <td class="w-2/3">
-            <input 
-                type="text" 
-                id="<?php echo esc_attr($name); ?>" 
-                name="<?php echo esc_attr($name); ?>" 
+            <input
+                type="text"
+                id="<?php echo esc_attr($name); ?>"
+                name="<?php echo esc_attr($name); ?>"
                 value="<?php echo esc_attr($color); ?>"
                 class="wph-color-picker"
                 data-default-color="<?php echo esc_attr($default_color); ?>"
@@ -255,8 +268,6 @@ function wph_chatbot_render_color_field($name, $label, $description = '', $defau
     </tr>
     <?php
 }
-
-
 function wph_chatbot_render_textarea_field($name, $label, $description = '', $rows = 5) {
     ?>
     <tr valign="top">
@@ -264,9 +275,9 @@ function wph_chatbot_render_textarea_field($name, $label, $description = '', $ro
             <label for="<?php echo esc_attr($name); ?>" class="text-base font-semibold text-text-primary"><?php echo esc_html($label); ?></label>
         </th>
         <td class="w-2/3">
-            <textarea 
-                id="<?php echo esc_attr($name); ?>" 
-                name="<?php echo esc_attr($name); ?>" 
+            <textarea
+                id="<?php echo esc_attr($name); ?>"
+                name="<?php echo esc_attr($name); ?>"
                 rows="<?php echo esc_attr($rows); ?>"
                 class="w-full max-w-lg p-3 border border-border-color rounded-lg shadow-sm focus:border-primary focus:ring-1 focus:ring-primary"
             ><?php echo esc_textarea(get_option($name)); ?></textarea>
@@ -277,7 +288,6 @@ function wph_chatbot_render_textarea_field($name, $label, $description = '', $ro
     </tr>
     <?php
 }
-
 function wph_chatbot_render_checkbox_field($name, $label, $description = '') {
     ?>
     <tr valign="top">
@@ -286,11 +296,11 @@ function wph_chatbot_render_checkbox_field($name, $label, $description = '') {
         </th>
         <td class="w-2/3">
             <label class="flex items-center">
-                <input 
-                    type="checkbox" 
-                    id="<?php echo esc_attr($name); ?>" 
-                    name="<?php echo esc_attr($name); ?>" 
-                    <?php checked(1, get_option($name, 1), true); ?> 
+                <input
+                    type="checkbox"
+                    id="<?php echo esc_attr($name); ?>"
+                    name="<?php echo esc_attr($name); ?>"
+                    <?php checked(1, get_option($name, 1), true); ?>
                     value="1"
                     class="h-5 w-5 rounded border-border-color text-primary focus:ring-primary"
                 />
@@ -300,7 +310,6 @@ function wph_chatbot_render_checkbox_field($name, $label, $description = '') {
     </tr>
     <?php
 }
-
 function wph_chatbot_render_select_field($name, $label, $options, $description = '') {
     ?>
     <tr valign="top">
@@ -309,7 +318,7 @@ function wph_chatbot_render_select_field($name, $label, $options, $description =
         </th>
         <td class="w-2/3">
             <select
-                id="<?php echo esc_attr($name); ?>" 
+                id="<?php echo esc_attr($name); ?>"
                 name="<?php echo esc_attr($name); ?>"
                 class="w-full max-w-lg p-3 border border-border-color rounded-lg shadow-sm focus:border-primary focus:ring-1 focus:ring-primary"
             >
@@ -326,7 +335,6 @@ function wph_chatbot_render_select_field($name, $label, $options, $description =
     </tr>
     <?php
 }
-
 function wph_chatbot_render_image_uploader_field($name, $label, $description = '') {
     $image_url = get_option($name, '');
     ?>
@@ -366,7 +374,7 @@ function wph_chatbot_render_image_uploader_field($name, $label, $description = '
 // PAGE CALLBACK FUNCTIONS
 // ==================================================================
 
-// REVERT: Simplified main page to fit inside WP Admin
+// Main dashboard page
 function wph_chatbot_main_page() {
     // Get total entries count
     $entry_count = wp_count_posts('wph_entries');
@@ -374,7 +382,7 @@ function wph_chatbot_main_page() {
 
     // Get bot status
     $bot_enabled = get_option('wph_chatbot_enabled', 1);
-    
+
     ?>
     <div class="wrap wph-chatbot-admin-wrap font-sans text-text-primary">
          <script>
@@ -412,12 +420,13 @@ function wph_chatbot_main_page() {
                 }
             }
         </script>
-        
+
         <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
             <div>
+                 <!-- --- CHANGE: Renamed Page Title --- -->
                 <h1 class="text-3xl font-bold text-text-primary">
-                    WPH Chatbot Dashboard
+                    Shuriken AI Chatbot Dashboard
                 </h1>
                 <p class="text-text-secondary mt-1">
                     Welcome! Here's an overview of your chatbot's activity.
@@ -430,7 +439,6 @@ function wph_chatbot_main_page() {
             <div class="bg-white p-6 rounded-lg shadow">
                 <div class="flex items-center gap-4">
                     <div class="p-3 rounded-lg bg-primary-light text-primary">
-                        <!-- Icon for entries -->
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     </div>
                     <div>
@@ -439,11 +447,10 @@ function wph_chatbot_main_page() {
                     </div>
                 </div>
             </div>
-            
+
             <div class="bg-white p-6 rounded-lg shadow">
                 <div class="flex items-center gap-4">
                     <div class="p-3 rounded-lg <?php echo $bot_enabled ? 'bg-green-100 text-success' : 'bg-red-100 text-danger'; ?>">
-                        <!-- Icon for status -->
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="<?php echo $bot_enabled ? 'm9 12 2 2 4-4' : 'm15 9-6 6m0-6 6 6'; ?>"></path></svg>
                     </div>
                     <div>
@@ -476,14 +483,19 @@ function wph_chatbot_main_page() {
                 </a>
             </div>
         </div>
+
+         <!-- NEW: Footer Added -->
+        <footer class="mt-12 pt-4 border-t border-border-color text-center text-text-muted text-sm">
+            Customized and Improved By <a href="https://shurikenit.com" target="_blank" class="text-primary hover:underline font-medium">ShurikenIT</a>
+        </footer>
     </div>
     <?php
 }
 
-// NEW: Function to display the "Train Bot" page
+// "Train Bot" page
 function wph_chatbot_train_bot_page() {
-    // FIX: Pass the correct settings group name: 'wph_chatbot_train_group'
-    wph_chatbot_form_wrapper_start('wph-chatbot-train', 'Train Your Chatbot', 'wph_chatbot_train_group');
+    // --- CHANGE: Renamed Page Title ---
+    wph_chatbot_form_wrapper_start('wph-chatbot-train', 'Train Shuriken AI Bot', 'wph_chatbot_train_group');
 
     wph_chatbot_render_card('Bot Knowledge Base', function() {
         wph_chatbot_render_textarea_field(
@@ -515,38 +527,38 @@ function wph_chatbot_train_bot_page() {
             </th>
             <td class="w-2/3">
                 <div class="flex flex-col gap-4">
-                    <input 
-                        type="text" 
-                        name="wph_button_1_query" 
-                        value="<?php echo esc_attr(get_option('wph_button_1_query', 'I want your help !!')); ?>" 
+                    <input
+                        type="text"
+                        name="wph_button_1_query"
+                        value="<?php echo esc_attr(get_option('wph_button_1_query', 'I want your help !!')); ?>"
                         placeholder="Button 1 Text"
                         class="w-full max-w-lg p-3 border border-border-color rounded-lg shadow-sm focus:border-primary focus:ring-1 focus:ring-primary"
                     />
-                    <input 
-                        type="text" 
-                        name="wph_button_2_query" 
-                        value="<?php echo esc_attr(get_option('wph_button_2_query', 'I want some Discounts')); ?>" 
+                    <input
+                        type="text"
+                        name="wph_button_2_query"
+                        value="<?php echo esc_attr(get_option('wph_button_2_query', 'I want some Discounts')); ?>"
                         placeholder="Button 2 Text"
                         class="w-full max-w-lg p-3 border border-border-color rounded-lg shadow-sm focus:border-primary focus:ring-1 focus:ring-primary"
                     />
-                    <input 
-                        type="text" 
-                        name="wph_button_3_query" 
-                        value="<?php echo esc_attr(get_option('wph_button_3_query', '')); ?>" 
+                    <input
+                        type="text"
+                        name="wph_button_3_query"
+                        value="<?php echo esc_attr(get_option('wph_button_3_query', '')); ?>"
                         placeholder="Button 3 Text"
                         class="w-full max-w-lg p-3 border border-border-color rounded-lg shadow-sm focus:border-primary focus:ring-1 focus:ring-primary"
                     />
-                    <input 
-                        type="text" 
-                        name="wph_button_4_query" 
-                        value="<?php echo esc_attr(get_option('wph_button_4_query', '')); ?>" 
+                    <input
+                        type="text"
+                        name="wph_button_4_query"
+                        value="<?php echo esc_attr(get_option('wph_button_4_query', '')); ?>"
                         placeholder="Button 4 Text"
                         class="w-full max-w-lg p-3 border border-border-color rounded-lg shadow-sm focus:border-primary focus:ring-1 focus:ring-primary"
                     />
-                    <input 
-                        type="text" 
-                        name="wph_button_5_query" 
-                        value="<?php echo esc_attr(get_option('wph_button_5_query', '')); ?>" 
+                    <input
+                        type="text"
+                        name="wph_button_5_query"
+                        value="<?php echo esc_attr(get_option('wph_button_5_query', '')); ?>"
                         placeholder="Button 5 Text"
                         class="w-full max-w-lg p-3 border border-border-color rounded-lg shadow-sm focus:border-primary focus:ring-1 focus:ring-primary"
                     />
@@ -556,14 +568,14 @@ function wph_chatbot_train_bot_page() {
         <?php
     });
 
-    wph_chatbot_form_wrapper_end();
+    wph_chatbot_form_wrapper_end(); // Includes the footer
 }
 
 
-// Function to display the settings page
+// Settings page
 function wph_chatbot_settings_page() {
-    // FIX: Pass the correct settings group name: 'wph_chatbot_settings_group'
-    wph_chatbot_form_wrapper_start('wph-chatbot-settings', 'WPH Chatbot Settings', 'wph_chatbot_settings_group');
+     // --- CHANGE: Renamed Page Title ---
+    wph_chatbot_form_wrapper_start('wph-chatbot-settings', 'Shuriken AI Chatbot Settings', 'wph_chatbot_settings_group');
 
     // API Settings Card
     wph_chatbot_render_card('API & General Settings', function() {
@@ -592,14 +604,12 @@ function wph_chatbot_settings_page() {
 
     // Appearance Card
     wph_chatbot_render_card('Chatbot Appearance', function() {
-        // NEW: Add Header Title field
         wph_chatbot_render_text_field(
             'wph_chatbot_header_title',
             'Header Title',
             'The title displayed at the top of the chat window.',
-            'WPHub AI Chatbot'
+            'Shuriken AI Chatbot' // --- CHANGE: Default Header Title ---
         );
-        // NEW: Add Theme Color field
         wph_chatbot_render_color_field(
             'wph_chatbot_theme_color',
             'Theme Color',
@@ -618,7 +628,7 @@ function wph_chatbot_settings_page() {
         );
     });
 
-    wph_chatbot_form_wrapper_end();
+    wph_chatbot_form_wrapper_end(); // Includes the footer
 }
 
 
@@ -632,8 +642,8 @@ function wph_sanitize_apostrophe($input) {
 add_action('admin_init', 'wph_chatbot_settings_init');
 
 function wph_chatbot_settings_init() {
-    
-    // FIX: Register settings for the 'wph_chatbot_settings_group'
+
+    // Settings for the 'wph_chatbot_settings_group'
     register_setting('wph_chatbot_settings_group', 'wph_gemini_api_key', 'sanitize_text_field');
     register_setting('wph_chatbot_settings_group', 'wph_chatbot_enabled', [
         'default' => 1,
@@ -646,7 +656,7 @@ function wph_chatbot_settings_init() {
     register_setting('wph_chatbot_settings_group', 'wph_chatbot_header_title', 'sanitize_text_field');
     register_setting('wph_chatbot_settings_group', 'wph_chatbot_theme_color', 'sanitize_hex_color');
 
-    // FIX: Register settings for the 'wph_chatbot_train_group'
+    // Settings for the 'wph_chatbot_train_group'
     register_setting('wph_chatbot_train_group', 'wph_welcome_message', 'sanitize_textarea_field');
     register_setting('wph_chatbot_train_group', 'wph_fallback_responses', 'sanitize_textarea_field');
     register_setting('wph_chatbot_train_group', 'wph_organization_info', 'sanitize_textarea_field');

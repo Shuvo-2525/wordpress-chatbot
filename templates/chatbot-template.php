@@ -3,7 +3,10 @@
 
 <div class="chatbot-container lwh-open-cbot">
         <div class="custom-chatbot__image" style="display: block;" onclick="lwhOpenCbotToggleChat()">
-            <dotlottie-player src="https://lottie.host/16dfd418-2a6d-4d32-bd85-a25dfbf46ba9/IjLZs82Ay5.json"
+            <!-- <dotlottie-player src="https://lottie.host/16dfd418-2a6d-4d32-bd85-a25dfbf46ba9/IjLZs82Ay5.json"
+                background="transparent" speed="1" style="width: 90px; height: 90px;" loop autoplay></dotlottie-player> -->
+
+            <dotlottie-player src="https://lottie.host/97ce924a-6e6c-4ccc-a1d4-6c3aca07f4e1/pCt9VfKX0Y.json"
                 background="transparent" speed="1" style="width: 90px; height: 90px;" loop autoplay></dotlottie-player>
         </div>
         <div class="custom-chatbot">
@@ -29,7 +32,7 @@
                 </div>
                 <div class="chat__header">
                     <div id="chat_header_name">
-                        <div class="chat__title"> WPHub AI Chatbot
+                        <div class="chat__title"> Shurikent AI Chatbot
                         </div>
                         <div>
                             <div class="chat__status"><span></span> Offline</div>
@@ -113,7 +116,7 @@
 
 <div style="display: flex; place-content: center; font-size: 14px; text-align: center; padding: 0.5em;">
   <a href="https://shurikenit.com" style="color: rgb(79, 79, 79); font-size: 0.75em; font-weight: 400; text-decoration: none;" target="_blank">
-	  customised by <b>ShurikenIT</b>
+	  Customised and Improved by <b>ShurikenIT</b>
   </a>
 </div>
 

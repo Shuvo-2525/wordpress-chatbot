@@ -2,11 +2,11 @@
  /*
   * Plugin Name: Shuriken AI Chatbot
   * Plugin URI: https://webpresshub.net/free-ai-chatbot/
-  * Description: It’s a free AI-powered chatbot for WordPress, powered by the Gemini API! This open-source plugin allows you to easily train your chatbot, engage visitors, collect user data, and save time. Fully customizable and simple to integrate.
-  * Version: 1.1.0
+  * Description:  Transform your site with a free AI chatbot for WordPress, built on the powerful Gemini API. Effortlessly train your bot on your content, engage visitors in meaningful conversations, and collect user data to grow your business. This fully customizable plugin offers simple integration and comes enhanced by ShurikenIT.
+  * Version: 1.0.0
   * Requires at least: 5.2
   * Requires PHP: 7.2
-  * Author: Customized by ShurikenIT [https://shurikenit.com]
+  * Author: ShurikenIT 
   * Author URI: https://shurikenit.com
   * License: GPL v2 or later
   * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -159,17 +159,18 @@ function chatbot_plugin_enqueue_assets() {
  if ( ! function_exists('register_wph_entries_cpt') ) {
  // Register Custom Post Type
  function register_wph_entries_cpt() {
+    // --- CHANGE: Renamed labels ---
  	$labels = array(
- 		'name'                  => 'WPH Entries',
- 		'singular_name'         => 'WPH Entry',
- 		'menu_name'             => 'WPH Entry',
- 		'name_admin_bar'        => 'WPH Entry',
+ 		'name'                  => 'Shuriken Entries', // Changed
+ 		'singular_name'         => 'Shuriken Entry', // Changed
+ 		'menu_name'             => 'Shuriken Entry', // Changed
+ 		'name_admin_bar'        => 'Shuriken Entry', // Changed
  		'archives'              => 'Item Archives',
  		'attributes'            => 'Item Attributes',
  		'parent_item_colon'     => 'Parent Item:',
  		'all_items'             => 'All Items',
  		'add_new_item'          => 'Add New Item',
- 		'add_new'               => 'Add Entry',
+ 		'add_new'               => 'Add Entry', // Keep as "Add Entry" for button? Or "Add Shuriken Entry"? User preference.
  		'new_item'              => 'New Item',
  		'edit_item'             => 'Edit Item',
  		'update_item'           => 'Update Item',
@@ -189,16 +190,16 @@ function chatbot_plugin_enqueue_assets() {
  		'filter_items_list'     => 'Filter items list',
  	);
  	$args = array(
- 		'label'                 => 'WPH Entry',
- 		'description'           => 'User Entries',
+ 		'label'                 => 'Shuriken Entry', // Changed
+ 		'description'           => 'User Entries captured by Shuriken AI Chatbot', // Changed description slightly
  		'labels'                => $labels,
  		'supports'              => array( 'title', 'custom-fields' ),
  		'hierarchical'          => false,
  		'public'                => false,
  		'show_ui'               => true,
- 		'show_in_menu'          => false,
+ 		'show_in_menu'          => false, // Keep false as it's added via submenu
  		'menu_position'         => 80,
- 		'show_in_admin_bar'     => true,
+ 		'show_in_admin_bar'     => true, // Maybe set to false if not needed in admin bar? User preference.
  		'show_in_nav_menus'     => false,
  		'can_export'            => true,
  		'has_archive'           => false,
@@ -206,7 +207,7 @@ function chatbot_plugin_enqueue_assets() {
  		'capability_type'       => 'page',
  		'show_in_rest'          => true,
  	);
- 	register_post_type( 'wph_entries', $args );
+ 	register_post_type( 'wph_entries', $args ); // Post type key 'wph_entries' remains unchanged internally
  
  }
  add_action( 'init', 'register_wph_entries_cpt', 0 );
@@ -406,3 +407,4 @@ function add_inline_css_to_post_editor_wph() {
 
 // register_activation_hook(__FILE__, 'client_data_send_ai_chatbot'); // This line has been removed.
 
+?>
