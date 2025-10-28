@@ -3,7 +3,7 @@
  * This file styles the new Tailwind-based admin UI.
  */
 
-/* NEW: Style for the wrapper to fit inside WP Admin */
+/* Style for the wrapper to fit inside WP Admin */
 .wph-chatbot-admin-wrap {
     margin-top: 20px;
     margin-right: 20px; /* Standard WP admin margin */
@@ -56,9 +56,142 @@
     padding: 0;
 }
 
-/* NEW: Style the "Entries" list view */
+/* Style the "Entries" list view */
 /* Hide default WP list page UI that we replace */
 body.post-type-wph_entries .page-title-action {
     display: none;
 }
+
+/* Style the main WP list table (.wp-list-table) */
+body.post-type-wph_entries .wp-list-table {
+    background-color: #ffffff; /* bg-white */
+    border-radius: 1rem; /* rounded-lg (adjust if needed, WP uses 4px default) */
+    box-shadow: 0px 2px 4px 0px rgba(118, 126, 148, 0.08), 0px 0px 2px 0px rgba(139, 147, 171, 0.12); /* shadow-DEFAULT */
+    border: none; /* Remove default WP borders */
+    margin-top: 2rem; /* Add some space above */
+}
+
+/* Remove default WP alternating row colors */
+body.post-type-wph_entries .wp-list-table tbody tr.alternate {
+    background-color: #ffffff; /* bg-white */
+}
+body.post-type-wph_entries .wp-list-table tbody tr:hover {
+     background-color: #FAFAFB; /* bg-light */
+}
+
+
+/* Style table header (thead) */
+body.post-type-wph_entries .wp-list-table thead th {
+    padding: 1rem; /* p-4 */
+    text-align: left;
+    font-size: 0.75rem; /* text-xs */
+    font-weight: 600; /* font-semibold (WP default is often bold already) */
+    color: #9FA3AB; /* text-text-muted */
+    text-transform: uppercase;
+    letter-spacing: 0.05em; /* tracking-wider */
+    border-bottom: 1px solid #E3E5E8; /* border-b border-border-color */
+    background-color: #ffffff; /* Ensure header bg is white */
+}
+body.post-type-wph_entries .wp-list-table thead th#cb { /* Checkbox column */
+     width: 2.5rem; /* w-10 */
+}
+
+
+/* Style table body (tbody) cells (td) */
+body.post-type-wph_entries .wp-list-table tbody td {
+    padding: 1rem; /* p-4 */
+    vertical-align: middle; /* Align content vertically */
+    color: #5B616F; /* text-text-secondary */
+    border-top: none; /* Remove default top border */
+    border-bottom: 1px solid #E3E5E8; /* Add bottom border */
+}
+body.post-type-wph_entries .wp-list-table tbody tr:last-child td {
+    border-bottom: none; /* Remove border for the last row */
+}
+
+/* Style the primary link in the first column (often the title/name) */
+body.post-type-wph_entries .wp-list-table tbody td.column-primary strong a {
+    font-weight: 500; /* font-medium */
+    color: #1A2133; /* text-text-primary */
+}
+/* Style secondary text within cells (like date/time under title) */
+body.post-type-wph_entries .wp-list-table tbody td .post-state,
+body.post-type-wph_entries .wp-list-table tbody td span { /* General secondary text */
+    font-size: 0.875rem; /* text-sm */
+    color: #5B616F; /* text-text-secondary */
+}
+
+/* Row Actions (View | Trash) */
+body.post-type-wph_entries .wp-list-table .row-actions {
+    color: #9FA3AB; /* text-text-muted */
+    padding-top: 0.25rem;
+}
+body.post-type-wph_entries .wp-list-table .row-actions a {
+    color: #3E64DE; /* text-primary */
+    font-weight: 500;
+}
+body.post-type-wph_entries .wp-list-table .row-actions a:hover {
+    color: #2F50BB; /* text-primary-hover */
+}
+body.post-type-wph_entries .wp-list-table .row-actions .trash a {
+    color: #EB5757; /* text-danger */
+}
+body.post-type-wph_entries .wp-list-table .row-actions .trash a:hover {
+    color: #cc4d4d; /* Darker danger color on hover */
+}
+
+
+/* Style Table Navigation / Pagination */
+body.post-type-wph_entries .tablenav {
+    background-color: #ffffff; /* bg-white */
+    border: none;
+    box-shadow: none;
+    padding: 1rem 1.5rem; /* p-4 md:p-6 */
+    border-top: 1px solid #E3E5E8; /* border-t border-border-color */
+    border-radius: 0 0 1rem 1rem; /* rounded-b-lg */
+}
+body.post-type-wph_entries .tablenav .tablenav-pages {
+    color: #5B616F; /* text-text-secondary */
+}
+body.post-type-wph_entries .tablenav .tablenav-pages a,
+body.post-type-wph_entries .tablenav .tablenav-pages span.current {
+    padding: 0.5rem 1rem; /* px-4 py-2 */
+    border-radius: 0.5rem; /* rounded-lg */
+    font-size: 0.875rem; /* text-sm */
+    text-decoration: none;
+    border: 1px solid #E3E5E8; /* border border-border-color */
+    margin: 0 0.25rem; /* gap-1 */
+}
+body.post-type-wph_entries .tablenav .tablenav-pages a {
+    color: #5B616F; /* text-text-secondary */
+    background-color: #ffffff; /* bg-white */
+}
+body.post-type-wph_entries .tablenav .tablenav-pages a:hover {
+     background-color: #FAFAFB; /* bg-light */
+}
+body.post-type-wph_entries .tablenav .tablenav-pages span.current {
+    background-color: #F0F3FF; /* bg-primary-light */
+    color: #3E64DE; /* text-primary */
+    font-weight: 600; /* font-semibold */
+    border-color: transparent;
+}
+body.post-type-wph_entries .tablenav .tablenav-pages .pagination-links .tablenav-pages-navspan {
+    opacity: 0.5; /* disabled:opacity-50 */
+    cursor: not-allowed;
+    background-color: #ffffff;
+    border: 1px solid #E3E5E8;
+    padding: 0.5rem 0.75rem; /* px-3 py-2 */
+}
+body.post-type-wph_entries .tablenav .tablenav-pages .pagination-links .next-page,
+body.post-type-wph_entries .tablenav .tablenav-pages .pagination-links .prev-page {
+    padding: 0.5rem 0.75rem; /* px-3 py-2 */
+}
+
+/* Hide bulk actions/filters if desired (optional) */
+/*
+body.post-type-wph_entries .tablenav.top .actions.bulkactions,
+body.post-type-wph_entries .tablenav.top .actions:not(.bulkactions) {
+   display: none;
+}
+*/
 
